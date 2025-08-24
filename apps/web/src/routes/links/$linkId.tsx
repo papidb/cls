@@ -35,10 +35,11 @@ export const Route = createFileRoute("/links/$linkId")({
 function RouteComponent() {
   const { linkId } = Route.useParams();
   const link = useSuspenseQuery(trpc.links.get.queryOptions({ id: linkId }));
-  const analytics = useSuspenseQuery(trpc.analytics.get.queryOptions({ id: linkId }));
-  console.log(analytics.data)
+  const analytics = useSuspenseQuery(
+    trpc.analytics.get.queryOptions({ id: linkId })
+  );
 
-  const shortUrl = `${import.meta.env.VITE_SERVER_URL}/${link.data.slug}`;
+  const shortUrl = `${window.location.origin}/${link.data.slug}`;
 
   const copyShortUrl = () => {
     copyToClipboard(shortUrl);
