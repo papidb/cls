@@ -11,7 +11,6 @@ export const Route = createFileRoute("/dashboard")({
 function RouteComponent() {
   const { data: session, isPending } = authClient.useSession();
 
-  const privateData = useQuery(trpc.privateData.queryOptions());
   const links = useQuery(trpc.links.getAll.queryOptions());
 
   if (isPending) {
@@ -22,7 +21,6 @@ function RouteComponent() {
     <div>
       <h1>Dashboard</h1>
       <p>Welcome {session?.user.name}</p>
-      <p>privateData: {privateData.data?.message}</p>
       <p>{JSON.stringify(links.data)}</p>
     </div>
   );

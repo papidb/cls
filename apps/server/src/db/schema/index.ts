@@ -5,6 +5,7 @@ export * from "./auth";
 export const links = sqliteTable("links", {
   id: text("id").primaryKey(),
   url: text("url").notNull(),
+  userId: text("user_id").notNull(),
   description: text("description"),
   slug: text("slug").notNull().unique(),
   expiration: integer("expiration", { mode: "timestamp" }),

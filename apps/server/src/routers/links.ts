@@ -10,9 +10,9 @@ export const linksRouter = router({
   }),
   create: protectedProcedure
     .input(createLinkPayloadSchema)
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const linkService = getFromContainer(LinkService);
-      const data = await linkService.createLink(input);
-      return { success: true, data };
+      const link = await linkService.createLink(ctx.session.user.id, input);
+      return { success: true, link };
     }),
 });

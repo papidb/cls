@@ -5,8 +5,10 @@ export class CacheService {
     return await env.LINK_STORE.get(key);
   }
 
-  async set(key: string, value: string) {
-    await env.LINK_STORE.put(key, value);
+  async set(key: string, value: string, ttl?: number) {
+    await env.LINK_STORE.put(key, value, {
+      expirationTtl: ttl,
+    });
   }
 
   async delete(key: string) {

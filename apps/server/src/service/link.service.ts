@@ -14,7 +14,7 @@ export class LinkService {
     return [];
   }
 
-  async createLink(data: CreateLinkPayload) {
+  async createLink(userId: string, data: CreateLinkPayload) {
     const slug = data.slug;
     const cacheService = getFromContainer(CacheService);
 
@@ -29,6 +29,7 @@ export class LinkService {
         id: ulid(),
         slug: data.slug,
         url: data.url,
+        userId: userId,
         description: data.description,
         expiration: data.expiration
           ? DateTime.fromJSDate(data.expiration).toJSDate()
@@ -37,6 +38,14 @@ export class LinkService {
         updatedAt: DateTime.now().toJSDate(),
       })
       .returning();
+
+    await cacheService.set(
+      link.slug,
+      JSON.stringify(link),
+      data.expiration
+        ? DateTime.fromJSDate(data.expiration).toSeconds()
+        : undefined
+    );
 
     return link;
   }
