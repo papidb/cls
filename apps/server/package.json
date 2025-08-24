@@ -23,10 +23,14 @@
 		"drizzle-orm": "^0.44.2",
 		"hono": "^4.8.2",
 		"inversify": "^7.9.0",
-		"zod": "^4.0.2"
+		"luxon": "^3.7.1",
+		"nanoid": "^5.1.5",
+		"ulid": "^3.0.1",
+		"zod": "^4.1.1"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20250822.0",
+		"@types/luxon": "^3.7.1",
 		"@types/node": "^22.13.11",
 		"alchemy": "^0.62.1",
 		"dotenv": "^17.2.1",

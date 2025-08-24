@@ -1,6 +1,7 @@
 import { Container } from "inversify";
 import { DatabaseConnection } from "./app.bind";
 import { db } from "./db";
+import { CacheService } from "./service/cache.service";
 import { LinkService } from "./service/link.service";
 
 const container = new Container({
@@ -9,6 +10,7 @@ const container = new Container({
 
 container.bind(DatabaseConnection).toConstantValue(db);
 container.bind(LinkService).toSelf();
+container.bind(CacheService).toSelf();
 
 export const getFromContainer: typeof Container.prototype.get = (
   serviceIdentifier,

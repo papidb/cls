@@ -1,5 +1,5 @@
 import alchemy from "alchemy";
-import { Vite } from "alchemy/cloudflare";
+import { KVNamespace, Vite } from "alchemy/cloudflare";
 import { Worker, WranglerJson } from "alchemy/cloudflare";
 import { D1Database } from "alchemy/cloudflare";
 import { Exec } from "alchemy/os";
@@ -21,6 +21,10 @@ const db = await D1Database("database", {
 	migrationsDir: "apps/server/src/db/migrations",
 });
 
+
+const linkStore = await KVNamespace("link-store", {
+  title: "link-store",
+});
 export const web = await Vite("web", {
 	cwd: "apps/web",
 	name: `${app.name}-${app.stage}-web`,
@@ -40,6 +44,7 @@ export const server = await Worker("server", {
 	compatibility: "node",
 	bindings: {
 		DB: db,
+		LINK_STORE: linkStore,
 		CORS_ORIGIN: process.env.CORS_ORIGIN || "",
 		BETTER_AUTH_SECRET: alchemy.secret(process.env.BETTER_AUTH_SECRET),
 		BETTER_AUTH_URL: process.env.BETTER_AUTH_URL || "",
