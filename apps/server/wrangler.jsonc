@@ -21,5 +21,8 @@
       "migrations_dir": "apps/server/src/db/migrations",
       "preview_database_id": "database"
     }
+  ],
+  "analytics_engine_datasets": [
+    { "binding": "ANALYTICS", "dataset": "analytics-dataset" }
   ]
 }

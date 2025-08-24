@@ -1,10 +1,22 @@
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { trpc } from "@/utils/trpc";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, ExternalLink, Copy, Calendar, User, Hash } from "lucide-react";
-import { Link } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import {
+  ArrowLeft,
+  Calendar,
+  Copy,
+  ExternalLink,
+  Hash,
+  User,
+} from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/links/$linkId")({
@@ -28,8 +40,9 @@ function RouteComponent() {
     }
   };
 
+  const shortUrl = `${import.meta.env.VITE_SERVER_URL}/${link.data.slug}`;
+
   const copyShortUrl = () => {
-    const shortUrl = `${window.location.origin}/${link.data.slug}`;
     copyToClipboard(shortUrl);
   };
 
@@ -69,15 +82,15 @@ function RouteComponent() {
                 </label>
                 <div className="flex items-center gap-2">
                   <code className="flex-1 px-3 py-2 bg-muted rounded text-sm">
-                    {window.location.origin}/{link.data.slug}
+                    {shortUrl}
                   </code>
                   <Button size="sm" variant="outline" onClick={copyShortUrl}>
                     <Copy className="h-4 w-4" />
                   </Button>
                   <Button size="sm" variant="outline" asChild>
-                    <a 
-                      href={`/${link.data.slug}`} 
-                      target="_blank" 
+                    <a
+                      href={shortUrl}
+                      target="_blank"
                       rel="noopener noreferrer"
                     >
                       <ExternalLink className="h-4 w-4" />
