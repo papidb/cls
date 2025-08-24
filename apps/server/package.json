@@ -14,24 +14,25 @@
 		"db:generate": "drizzle-kit generate"
 	},
 	"dependencies": {
-		"dotenv": "^17.2.1",
-		"zod": "^4.0.2",
-		"@trpc/server": "^11.4.2",
-		"@trpc/client": "^11.4.2",
 		"@hono/trpc-server": "^0.4.0",
-		"hono": "^4.8.2",
-		"drizzle-orm": "^0.44.2",
 		"@libsql/client": "^0.15.9",
-		"better-auth": "^1.3.4"
+		"@trpc/client": "^11.4.2",
+		"@trpc/server": "^11.4.2",
+		"better-auth": "^1.3.4",
+		"dotenv": "^17.2.1",
+		"drizzle-orm": "^0.44.2",
+		"hono": "^4.8.2",
+		"inversify": "^7.9.0",
+		"zod": "^4.0.2"
 	},
 	"devDependencies": {
+		"@cloudflare/workers-types": "^4.20250822.0",
+		"@types/node": "^22.13.11",
+		"alchemy": "^0.62.1",
+		"dotenv": "^17.2.1",
+		"drizzle-kit": "^0.31.2",
 		"tsdown": "^0.12.9",
 		"typescript": "^5.8.2",
-		"drizzle-kit": "^0.31.2",
-		"alchemy": "^0.62.1",
-		"wrangler": "^4.23.0",
-		"@types/node": "^22.13.11",
-		"dotenv": "^17.2.1",
-		"@cloudflare/workers-types": "^4.20250822.0"
+		"wrangler": "^4.23.0"
 	}
 }
