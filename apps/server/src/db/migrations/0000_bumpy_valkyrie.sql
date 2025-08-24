@@ -47,3 +47,16 @@ CREATE TABLE `verification` (
 	`created_at` integer,
 	`updated_at` integer
 );
+--> statement-breakpoint
+CREATE TABLE `links` (
+	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+	`url` text NOT NULL,
+	`user_id` text NOT NULL,
+	`description` text,
+	`slug` text NOT NULL,
+	`expiration` integer,
+	`created_at` integer NOT NULL,
+	`updated_at` integer NOT NULL
+);
+--> statement-breakpoint
+CREATE UNIQUE INDEX `links_slug_unique` ON `links` (`slug`);
