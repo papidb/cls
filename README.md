@@ -68,3 +68,4 @@ cls/
 - `pnpm db:push`: Push schema changes to database
 - `pnpm db:studio`: Open database studio UI
 - `cd apps/server && pnpm db:local`: Start the local SQLite database
+# cls
