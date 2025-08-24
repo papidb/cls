@@ -10,9 +10,7 @@ export const analyticsRouter = router({
     .query(async ({ input }) => {
       const analyticsService = getFromContainer(AnalyticsService);
       const linkService = getFromContainer(LinkService);
-
       const link = await linkService.getLinkById(Number(input.id));
-    //   return analyticsService.getLinkAnalytics(link.slug);
-      return {};
+      return analyticsService.getLinkAnalytics(link.slug);
     }),
 });

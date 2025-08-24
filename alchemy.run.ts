@@ -56,6 +56,7 @@ export const server = await Worker("server", {
     DB: db,
     LINK_STORE: linkStore,
     ANALYTICS: analytics,
+    ANALYTICS_DATASET: analytics.dataset,
     CORS_ORIGIN: process.env.CORS_ORIGIN || "",
     BETTER_AUTH_SECRET: alchemy.secret(process.env.BETTER_AUTH_SECRET),
     CLOUDFLARE_API_TOKEN: alchemy.secret(process.env.CLOUDFLARE_API_TOKEN),
