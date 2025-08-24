@@ -15,6 +15,13 @@
       "when": 1756058817492,
       "tag": "0001_lying_otto_octavius",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1756065583182,
+      "tag": "0002_unique_wrecker",
+      "breakpoints": true
     }
   ]
 }

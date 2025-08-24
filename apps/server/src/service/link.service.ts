@@ -1,17 +1,37 @@
 import { DatabaseConnection } from "@/app.bind";
 import { getFromContainer } from "@/app.container";
 import { links } from "@/db/schema";
-import type { CreateLinkPayload } from "@/schema/payload.schema";
+import type {
+  CreateLinkPayload,
+  QueryLinksPayload,
+} from "@/schema/payload.schema";
 import { env } from "cloudflare:workers";
-import { eq } from "drizzle-orm";
+import { and, asc, desc, eq, gt, ilike, lt } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import { DateTime } from "luxon";
-import { ulid } from "ulid";
 import { CacheService } from "./cache.service";
 
 export class LinkService {
-  getLinks(_: unknown) {
-    return [];
+  async getLinks(q: QueryLinksPayload) {
+    const { cursor, text, order, size } = { ...q, size: 100 };
+
+    const db = getFromContainer(DatabaseConnection);
+    const query = await db
+      .select()
+      .from(links)
+      .where(
+        and(
+          cursor
+            ? order === "asc"
+              ? gt(links.id, cursor)
+              : lt(links.id, cursor)
+            : undefined,
+          text ? ilike(links.description, `%${text}%`) : undefined
+        )
+      )
+      .limit(size)
+      .orderBy(order === "asc" ? asc(links.id) : desc(links.id));
+    return query;
   }
 
   async createLink(userId: string, data: CreateLinkPayload) {
@@ -26,7 +46,6 @@ export class LinkService {
     const [link] = await db
       .insert(links)
       .values({
-        id: ulid(),
         slug: data.slug,
         url: data.url,
         userId: userId,
@@ -50,7 +69,7 @@ export class LinkService {
     return link;
   }
 
-  async getLinkById(id: string) {
+  async getLinkById(id: number) {
     const db = getFromContainer(DatabaseConnection);
     const [link] = await db
       .select()

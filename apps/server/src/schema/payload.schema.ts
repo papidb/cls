@@ -8,3 +8,14 @@ export const createLinkPayloadSchema = z.object({
 });
 
 export type CreateLinkPayload = z.infer<typeof createLinkPayloadSchema>;
+
+export const queryLinksPayloadSchema = z
+  .object({
+    cursor: z.int().optional(),
+    text: z.string().optional(),
+    order: z.enum(["asc", "desc"]).default("asc"),
+    size: z.number().min(1).max(100).default(100),
+  })
+  .optional();
+
+export type QueryLinksPayload = z.infer<typeof queryLinksPayloadSchema>;

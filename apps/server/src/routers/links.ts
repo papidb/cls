@@ -1,12 +1,15 @@
 import { getFromContainer } from "@/app.container";
-import { createLinkPayloadSchema } from "@/schema/payload.schema";
+import {
+  createLinkPayloadSchema,
+  queryLinksPayloadSchema,
+} from "@/schema/payload.schema";
 import { LinkService } from "@/service/link.service";
 import { protectedProcedure, publicProcedure, router } from "../lib/trpc";
 
 export const linksRouter = router({
-  getAll: publicProcedure.query(() => {
+  getAll: publicProcedure.input(queryLinksPayloadSchema).query(({ input }) => {
     const linkService = getFromContainer(LinkService);
-    return linkService.getLinks({});
+    return linkService.getLinks(input);
   }),
   create: protectedProcedure
     .input(createLinkPayloadSchema)
