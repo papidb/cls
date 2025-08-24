@@ -69,3 +69,4 @@ cls/
 - `pnpm db:studio`: Open database studio UI
 - `cd apps/server && pnpm db:local`: Start the local SQLite database
 # cls
+# cls
