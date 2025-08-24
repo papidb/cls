@@ -1,5 +1,5 @@
 {
-  "name": "cls-user",
+  "name": "cls-local",
   "main": "src/index.ts",
   "compatibility_date": "2025-08-16",
   "compatibility_flags": [
@@ -17,12 +17,12 @@
     {
       "binding": "DB",
       "database_id": "database",
-      "database_name": "cls-user-db",
+      "database_name": "cls-local-db",
       "migrations_dir": "apps/server/src/db/migrations",
       "preview_database_id": "database"
     }
   ],
   "analytics_engine_datasets": [
-    { "binding": "ANALYTICS", "dataset": "analytics-dataset" }
+    { "binding": "ANALYTICS", "dataset": "analytics-dataset-local" }
   ]
 }

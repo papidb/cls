@@ -6,6 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { copyToClipboard } from "@/lib/string";
 import { trpc } from "@/utils/trpc";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
@@ -17,28 +18,25 @@ import {
   Hash,
   User,
 } from "lucide-react";
-import { toast } from "sonner";
 
 export const Route = createFileRoute("/links/$linkId")({
   component: RouteComponent,
   loader: ({ context, params }) =>
-    context.queryClient.ensureQueryData(
-      trpc.links.get.queryOptions({ id: params.linkId })
-    ),
+    Promise.all([
+      context.queryClient.ensureQueryData(
+        trpc.links.get.queryOptions({ id: params.linkId })
+      ),
+      context.queryClient.ensureQueryData(
+        trpc.analytics.get.queryOptions({ id: params.linkId })
+      ),
+    ]),
 });
 
 function RouteComponent() {
   const { linkId } = Route.useParams();
   const link = useSuspenseQuery(trpc.links.get.queryOptions({ id: linkId }));
-
-  const copyToClipboard = async (text: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      toast.success("Copied to clipboard!");
-    } catch (err) {
-      toast.error("Failed to copy to clipboard");
-    }
-  };
+  const analytics = useSuspenseQuery(trpc.analytics.get.queryOptions({ id: linkId }));
+  console.log(analytics.data)
 
   const shortUrl = `${import.meta.env.VITE_SERVER_URL}/${link.data.slug}`;
 

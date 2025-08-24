@@ -7,7 +7,7 @@
 		"packages/*"
 	],
 	"scripts": {
-		"deploy": "alchemy deploy",
+		"deploy": "STAGE=production alchemy deploy",
 		"destroy": "alchemy destroy",
 		"alchemy:dev": "alchemy dev",
 		"dev": "turbo dev",
