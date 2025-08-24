@@ -4,6 +4,7 @@ import {
   queryLinksPayloadSchema,
 } from "@/schema/payload.schema";
 import { LinkService } from "@/service/link.service";
+import z from "zod";
 import { protectedProcedure, publicProcedure, router } from "../lib/trpc";
 
 export const linksRouter = router({
@@ -17,5 +18,11 @@ export const linksRouter = router({
       const linkService = getFromContainer(LinkService);
       const link = await linkService.createLink(ctx.session.user.id, input);
       return { success: true, link };
+    }),
+  get: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ input }) => {
+      const linkService = getFromContainer(LinkService);
+      return linkService.getLinkById(Number(input.id));
     }),
 });

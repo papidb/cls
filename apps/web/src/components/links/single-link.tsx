@@ -1,24 +1,14 @@
+import type { Link as LinkType } from "@/entities";
 import { Link } from "@tanstack/react-router";
 
-export function PreviewLink({
-  link,
-}: {
-  link: {
-    id: number;
-    slug: string;
-    url: string;
-    expiration: string | null;
-    description?: string | null;
-    createdAt: string;
-  };
-}) {
+export function PreviewLink({ link }: { link: LinkType }) {
   return (
-    <Link to="/link/$id" params={{ id: link.id.toString() }}>
-      <div className="border rounded-lg p-4">
+    <Link to="/links/$linkId" params={{ linkId: link.id.toString() }}>
+      <div className="border rounded-lg p-4 hover:bg-accent/50 transition-colors cursor-pointer">
         <div className="flex items-center justify-between">
           <div>
             <h3 className="font-medium">/{link.slug}</h3>
-            <p className="text-sm text-muted-foreground">{link.url}</p>
+            <p className="text-sm text-muted-foreground truncate max-w-md">{link.url}</p>
             {link.description && (
               <p className="text-sm mt-1">{link.description}</p>
             )}
