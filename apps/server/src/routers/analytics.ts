@@ -12,7 +12,7 @@ export const analyticsRouter = router({
       const linkService = getFromContainer(LinkService);
 
       const link = await linkService.getLinkById(Number(input.id));
-      return analyticsService.getLinkAnalytics(link.slug);
+    //   return analyticsService.getLinkAnalytics(link.slug);
       return {};
     }),
 });

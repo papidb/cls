@@ -16,12 +16,12 @@ const webDomain = "cls.danielubenjamin.com";
 const apiDomain = "api.cls.danielubenjamin.com";
 
 config({ path: "./.env" });
-config({ path: "./apps/web/.env" });
-config({ path: "./apps/server/.env" });
-
 if (stage === "production") {
   config({ path: "./apps/web/.env.production" });
   config({ path: "./apps/server/.env.production" });
+} else {
+  config({ path: "./apps/web/.env" });
+  config({ path: "./apps/server/.env" });
 }
 
 const app = await alchemy("cls", {
