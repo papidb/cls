@@ -1,8 +1,22 @@
-// This is a temporary wrangler.jsonc file that will be overwritten by alchemy
-// It's only here so that `wrangler dev` can work or use alchemy dev instead
 {
-	"name": "cls",
-	"main": "src/index.ts",
-	"compatibility_date": "2025-08-16",
-	"compatibility_flags": ["nodejs_compat", "nodejs_compat_populate_process_env"]
+  "name": "cls-user",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-08-16",
+  "compatibility_flags": [
+    "nodejs_compat",
+    "nodejs_compat_populate_process_env"
+  ],
+  "vars": {
+    "CORS_ORIGIN": "http://localhost:3001",
+    "BETTER_AUTH_URL": "http://localhost:3000"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_id": "database",
+      "database_name": "cls-user-db",
+      "migrations_dir": "apps/server/src/db/migrations",
+      "preview_database_id": "database"
+    }
+  ]
 }

@@ -1,6 +1,7 @@
 {
 	"name": "cls",
 	"private": true,
+	"type": "module",
 	"workspaces": [
 		"apps/*",
 		"packages/*"
