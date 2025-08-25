@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/card";
 import { copyToClipboard } from "@/lib/string";
 import { trpc } from "@/utils/trpc";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   ArrowLeft,
@@ -19,25 +19,40 @@ import {
   User,
 } from "lucide-react";
 
-export const Route = createFileRoute("/links/$linkId")({
+export const Route = createFileRoute("/links/$slug")({
   component: RouteComponent,
   loader: ({ context, params }) =>
     Promise.all([
       context.queryClient.ensureQueryData(
-        trpc.links.get.queryOptions({ id: params.linkId })
+        trpc.links.get.queryOptions({ slug: params.slug })
       ),
       context.queryClient.ensureQueryData(
-        trpc.analytics.get.queryOptions({ id: params.linkId })
+        trpc.analytics.get.queryOptions({ slug: params.slug })
       ),
     ]),
 });
 
 function RouteComponent() {
-  const { linkId } = Route.useParams();
-  const link = useSuspenseQuery(trpc.links.get.queryOptions({ id: linkId }));
+  const { slug } = Route.useParams();
+  const link = useSuspenseQuery(trpc.links.get.queryOptions({ slug: slug }));
   const analytics = useSuspenseQuery(
-    trpc.analytics.get.queryOptions({ id: linkId })
+    trpc.analytics.get.queryOptions({ slug: slug })
   );
+
+  const metrics = useQuery(
+    trpc.analytics.metrics.queryOptions({
+      dimensions: [{ col: "country", alias: "country" }],
+      metrics: [{ kind: "clicks", alias: "clicks" }],
+      filters: [
+        { op: "eq", col: "slug", value: slug },
+        { op: "sinceDays", days: 30 },
+      ],
+      orderBy: [{ expr: "clicks", dir: "DESC" }],
+      limit: 20,
+    })
+  );
+
+  console.log(metrics.data);
 
   const shortUrl = `${window.location.origin}/${link.data.slug}`;
 

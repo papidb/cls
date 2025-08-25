@@ -20,9 +20,9 @@ export const linksRouter = router({
       return { success: true, link };
     }),
   get: protectedProcedure
-    .input(z.object({ id: z.string() }))
+    .input(z.object({ slug: z.string() }))
     .query(async ({ input }) => {
       const linkService = getFromContainer(LinkService);
-      return linkService.getLinkById(Number(input.id));
+      return linkService.getLinkBySlug(input.slug);
     }),
 });

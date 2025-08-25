@@ -1,6 +1,7 @@
 import { DatabaseConnection } from "@/app.bind";
 import { getFromContainer } from "@/app.container";
 import { links } from "@/db/schema";
+import type { Link } from "@/schema/model.schema";
 import type {
   CreateLinkPayload,
   QueryLinksPayload,
@@ -82,7 +83,22 @@ export class LinkService {
     return link;
   }
 
-  getLinkBySlug(slug: string) {
-    return env.LINK_STORE.get(slug);
+  async getLinkBySlug(slug: string) {
+    const cacheLink = await env.LINK_STORE.get(slug);
+    if (!cacheLink) {
+      const db = getFromContainer(DatabaseConnection);
+
+      const [link] = await db
+        .select()
+        .from(links)
+        .where(eq(links.slug, slug))
+        .limit(1);
+
+      if (link) {
+        return link;
+      }
+      throw new HTTPException(404, { message: "Link not found" });
+    }
+    return JSON.parse(cacheLink) as Link;
   }
 }

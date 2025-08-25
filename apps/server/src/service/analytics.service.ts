@@ -1,4 +1,7 @@
-import { metricsRequestSchema } from "@/schema/payload.schema";
+import {
+  metricsRequestSchema,
+  type MetricsRequest,
+} from "@/schema/payload.schema";
 import { logger } from "@/utils/logger";
 import {
   firstIp,
@@ -28,6 +31,18 @@ import {
 function sanitizeIdent(id: string) {
   // keep it simple: A-Z a-z 0-9 _
   return id.replace(/[^a-zA-Z0-9_]/g, "");
+}
+
+const bucketSeconds: Record<"minute" | "hour" | "day" | "week", number> = {
+  minute: 60,
+  hour: 3600,
+  day: 86400,
+  week: 604800,
+};
+
+function bucketExpr(unit: keyof typeof bucketSeconds) {
+  const step = bucketSeconds[unit];
+  return `intDiv(toUnixTimestamp(timestamp), ${step}) * ${step}`;
 }
 
 export class AnalyticsService {
@@ -82,12 +97,19 @@ export class AnalyticsService {
     const userAgent = headers("user-agent") || "";
     const parser = new UAParser(userAgent, {
       browser: [
+        // @ts-ignore
         Crawlers.browser || [],
+        // @ts-ignore
         CLIs.browser || [],
+        // @ts-ignore
         Emails.browser || [],
+        // @ts-ignore
         Fetchers.browser || [],
+        // @ts-ignore
         InApps.browser || [],
+        // @ts-ignore
         MediaPlayers.browser || [],
+        // @ts-ignore
         Vehicles.browser || [],
       ].flat(),
       // @ts-expect-error upstream typing
@@ -137,28 +159,25 @@ export class AnalyticsService {
     });
   }
 
-  async metrics(input: unknown) {
-    // 1) Validate
+  async metrics(input: MetricsRequest) {
     const req = metricsRequestSchema.parse(input);
 
-    // 2) Compose SQL
     let q = sql.select();
 
-    // bucket first so alias exists
+    // ---- time bucket (optional) ----
     if (req.bucket) {
-      q = q
-        .select(`DATE_TRUNC('${req.bucket}', timestamp) AS bucket`)
-        .groupBy("bucket");
+      const expr = bucketExpr(req.bucket);
+      q = q.select(`${expr} AS bucket`).groupBy("bucket").orderBy("bucket ASC");
     }
 
-    // dimensions
+    // ---- dimensions ----
     for (const d of req.dimensions || []) {
       const phys = toPhysical(d.col);
       const alias = sanitizeIdent(d.alias || d.col);
       q = q.select(`${phys} AS ${alias}`).groupBy(phys);
     }
 
-    // metrics
+    // ---- metrics ----
     for (const m of req.metrics) {
       if (m.kind === "clicks") {
         const alias = sanitizeIdent(m.alias || "clicks");
@@ -170,38 +189,48 @@ export class AnalyticsService {
       }
     }
 
-    // filters
+    // ---- filters ----
     for (const f of req.filters || []) {
       if (f.op === "eq") {
-        q = q.where({ [toPhysical(f.col)]: f.value });
+        if (f.value !== null && f.value !== undefined) {
+          q = q.where({ [toPhysical(f.col)]: f.value });
+        }
       } else if (f.op === "in") {
-        const list = f.values.map((v) =>
-          typeof v === "number" ? v : sql.val(v)
-        );
-        // sql-bricks does not build IN with an array directly for objects, so use raw
-        q = q.where(`${toPhysical(f.col)} IN (${list.map(String).join(",")})`);
-      } else if (f.op === "sinceDays") {
-        q = q.where(`timestamp >= NOW() - INTERVAL '${f.days}' DAY`);
-      } else if (f.op === "betweenTime") {
-        q = q.where(
-          sql.and(
-            sql(`timestamp >= ${sql.val(f.startIso)}`),
-            sql(`timestamp < ${sql.val(f.endIso)}`)
+        const list = f.values
+          .filter((v) => v !== null && v !== undefined)
+          .map((v) =>
+            typeof v === "number" ? String(v) : sql.val(v).toString()
           )
-        );
+          .join(",");
+        q = q.where(`${toPhysical(f.col)} IN (${list})`);
+      } else if (f.op === "sinceDays") {
+        const days = Math.max(1, Math.min(3650, Number(f.days) || 1));
+        q = q.where(`timestamp >= now() - INTERVAL '${days}' DAY`);
+      } else if (f.op === "betweenTime") {
+        if (f.startIso && f.endIso) {
+          q = q.where(
+            `timestamp >= ${sql.val(f.startIso)} AND timestamp < ${sql.val(
+              f.endIso
+            )}`
+          );
+        }
       }
     }
 
-    q = q.from(env.ANALYTICS_DATASET);
+    q = q.from(`'link-clicks-production'`);
 
-    // order
     for (const o of req.orderBy || []) {
       q = q.orderBy(`${sanitizeIdent(o.expr)} ${o.dir || "DESC"}`);
     }
 
-    if (req.limit) q = q.limit(req.limit);
+    let sqlString = q.toString();
+    if (typeof req.limit === "number") sqlString += ` LIMIT ${req.limit}`;
 
-    const sqlString = q.toString();
+    sqlString = sqlString.replace(
+      /(INTERVAL\s*'?\d+'?\s*DAY)\s+IS\s+NULL/gi,
+      "$1"
+    );
+
     return this.runAE(sqlString);
   }
 }
