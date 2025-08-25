@@ -26,20 +26,14 @@ export const Route = createFileRoute("/links/$slug")({
       context.queryClient.ensureQueryData(
         trpc.links.get.queryOptions({ slug: params.slug })
       ),
-      context.queryClient.ensureQueryData(
-        trpc.analytics.get.queryOptions({ slug: params.slug })
-      ),
     ]),
 });
 
 function RouteComponent() {
   const { slug } = Route.useParams();
   const link = useSuspenseQuery(trpc.links.get.queryOptions({ slug: slug }));
-  const analytics = useSuspenseQuery(
-    trpc.analytics.get.queryOptions({ slug: slug })
-  );
 
-  const metrics = useQuery(
+  const topCountriesDays = useQuery(
     trpc.analytics.metrics.queryOptions({
       dimensions: [{ col: "country", alias: "country" }],
       metrics: [{ kind: "clicks", alias: "clicks" }],
@@ -52,7 +46,64 @@ function RouteComponent() {
     })
   );
 
-  console.log(metrics.data);
+  const topReferrers = useQuery(
+    trpc.analytics.metrics.queryOptions({
+      dimensions: [{ col: "referer", alias: "referrer_host" }],
+      metrics: [{ kind: "clicks", alias: "clicks" }],
+      filters: [{ op: "eq", col: "slug", value: slug }],
+      orderBy: [{ expr: "clicks", dir: "DESC" }],
+      limit: 20,
+    })
+  );
+
+  const topLanguages = useQuery(
+    trpc.analytics.metrics.queryOptions({
+      dimensions: [{ col: "language", alias: "lang" }],
+      metrics: [{ kind: "clicks", alias: "clicks" }],
+      filters: [
+        { op: "eq", col: "slug", value: slug },
+        { op: "sinceDays", days: 30 },
+      ],
+      orderBy: [{ expr: "clicks", dir: "DESC" }],
+      limit: 20,
+    })
+  );
+
+  const topDevices = useQuery(
+    trpc.analytics.metrics.queryOptions({
+      dimensions: [{ col: "deviceType", alias: "device_type" }],
+      metrics: [{ kind: "clicks", alias: "clicks" }],
+      filters: [{ op: "eq", col: "slug", value: slug }],
+      orderBy: [{ expr: "clicks", dir: "DESC" }],
+      limit: 10,
+    })
+  );
+
+  const topBrowsers = useQuery(
+    trpc.analytics.metrics.queryOptions({
+      dimensions: [{ col: "browser", alias: "browser" }],
+      metrics: [{ kind: "clicks", alias: "clicks" }],
+      filters: [
+        { op: "eq", col: "slug", value: slug },
+        { op: "sinceDays", days: 30 },
+      ],
+      orderBy: [{ expr: "clicks", dir: "DESC" }],
+      limit: 15,
+    })
+  );
+
+  const timeSeries = useQuery(
+    trpc.analytics.metrics.queryOptions({
+      bucket: "hour", // one bucket per hour
+      metrics: [{ kind: "clicks", alias: "clicks" }],
+      filters: [
+        { op: "eq", col: "slug", value: slug }, // your slug filter
+        { op: "sinceDays", days: 30 }, // last 30 days
+      ],
+      orderBy: [{ expr: "bucket", dir: "ASC" }], // chronological order
+      limit: 24 * 30, // optional safety cap (30 days * 24 hours)
+    })
+  );
 
   const shortUrl = `${window.location.origin}/${link.data.slug}`;
 
