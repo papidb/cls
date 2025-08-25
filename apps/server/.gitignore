@@ -51,3 +51,7 @@ lerna-debug.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+
+# this is getting generated from my deployments, I don't think it should be tracked
+wrangler.jsonc

@@ -43,7 +43,7 @@ const linkStore = await KVNamespace("link-store", {
 });
 
 const analytics = AnalyticsEngineDataset("analytics", {
-  dataset: `analytics-dataset-${app.stage}`,
+  dataset: `link-clicks-${app.stage}`,
 });
 
 export const server = await Worker("server", {
