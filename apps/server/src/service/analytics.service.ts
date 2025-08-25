@@ -1,16 +1,18 @@
-import { AEQuery } from "@/impl/ae-query";
+import { metricsRequestSchema } from "@/schema/payload.schema";
 import { logger } from "@/utils/logger";
 import {
   firstIp,
   getFlag,
   logs2blobs,
   logs2doubles,
+  toPhysical,
   type LogsMap,
 } from "@/utils/logs";
 import { env } from "cloudflare:workers";
 import type { Context } from "hono";
 import type { BlankEnv } from "hono/types";
 import { parseAcceptLanguage } from "intl-parse-accept-language";
+import sql from "sql-bricks";
 import { UAParser } from "ua-parser-js";
 import {
   CLIs,
@@ -23,9 +25,14 @@ import {
   Vehicles,
 } from "ua-parser-js/extensions";
 
+function sanitizeIdent(id: string) {
+  // keep it simple: A-Z a-z 0-9 _
+  return id.replace(/[^a-zA-Z0-9_]/g, "");
+}
+
 export class AnalyticsService {
   private async runAE(sql: string) {
-    logger.info(sql)
+    logger.info(sql);
     const response = await fetch(
       `https://api.cloudflare.com/client/v4/accounts/${env.CLOUDFLARE_ACCOUNT_ID}/analytics_engine/sql`,
       {
@@ -130,52 +137,71 @@ export class AnalyticsService {
     });
   }
 
-  async getTopCountries(slug: string) {
-    const sql = new AEQuery()
-      .selectDim("country", "country")
-      .sumSample("clicks")
-      .whereEq("slug", slug)
-      .groupBy("country")
-      .orderBy("clicks", "DESC")
-      .limit(50)
-      .build();
-    return this.runAE(sql) as Promise<
-      Array<{ country: string | null; clicks: number }>
-    >;
-  }
+  async metrics(input: unknown) {
+    // 1) Validate
+    const req = metricsRequestSchema.parse(input);
 
-  async getTopLanguages(slug: string) {
-    const sql = new AEQuery()
-      .selectDim("language", "lang")
-      .sumSample("clicks")
-      .whereEq("slug", slug)
-      .groupBy("language")
-      .orderBy("clicks", "DESC")
-      .limit(50)
-      .build();
-    return this.runAE(sql);
-  }
+    // 2) Compose SQL
+    let q = sql.select();
 
-  async getReferrers(slug: string) {
-    const sql = new AEQuery()
-      .selectDim("referer", "referrer_host")
-      .sumSample("clicks")
-      .whereEq("slug", slug)
-      .groupBy("referer")
-      .orderBy("clicks", "DESC")
-      .limit(50)
-      .build();
-    return this.runAE(sql);
-  }
+    // bucket first so alias exists
+    if (req.bucket) {
+      q = q
+        .select(`DATE_TRUNC('${req.bucket}', timestamp) AS bucket`)
+        .groupBy("bucket");
+    }
 
-  async getHourlySeries(slug: string) {
-    const sql = new AEQuery()
-      .timeBucket("hour", "bucket")
-      .sumSample("clicks")
-      .whereEq("slug", slug)
-      .whereTimeSince(7)
-      .orderBy("bucket", "ASC")
-      .build();
-    return this.runAE(sql);
+    // dimensions
+    for (const d of req.dimensions || []) {
+      const phys = toPhysical(d.col);
+      const alias = sanitizeIdent(d.alias || d.col);
+      q = q.select(`${phys} AS ${alias}`).groupBy(phys);
+    }
+
+    // metrics
+    for (const m of req.metrics) {
+      if (m.kind === "clicks") {
+        const alias = sanitizeIdent(m.alias || "clicks");
+        q = q.select(`SUM(_sample_interval) AS ${alias}`);
+      } else if (m.kind === "uniques") {
+        const phys = toPhysical(m.on);
+        const alias = sanitizeIdent(m.alias || "uniques");
+        q = q.select(`COUNT(DISTINCT ${phys}) AS ${alias}`);
+      }
+    }
+
+    // filters
+    for (const f of req.filters || []) {
+      if (f.op === "eq") {
+        q = q.where({ [toPhysical(f.col)]: f.value });
+      } else if (f.op === "in") {
+        const list = f.values.map((v) =>
+          typeof v === "number" ? v : sql.val(v)
+        );
+        // sql-bricks does not build IN with an array directly for objects, so use raw
+        q = q.where(`${toPhysical(f.col)} IN (${list.map(String).join(",")})`);
+      } else if (f.op === "sinceDays") {
+        q = q.where(`timestamp >= NOW() - INTERVAL '${f.days}' DAY`);
+      } else if (f.op === "betweenTime") {
+        q = q.where(
+          sql.and(
+            sql(`timestamp >= ${sql.val(f.startIso)}`),
+            sql(`timestamp < ${sql.val(f.endIso)}`)
+          )
+        );
+      }
+    }
+
+    q = q.from(env.ANALYTICS_DATASET);
+
+    // order
+    for (const o of req.orderBy || []) {
+      q = q.orderBy(`${sanitizeIdent(o.expr)} ${o.dir || "DESC"}`);
+    }
+
+    if (req.limit) q = q.limit(req.limit);
+
+    const sqlString = q.toString();
+    return this.runAE(sqlString);
   }
 }

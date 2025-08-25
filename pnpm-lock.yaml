@@ -62,6 +62,9 @@ importers:
       pino:
         specifier: ^9.9.0
         version: 9.9.0
+      sql-bricks:
+        specifier: ^3.0.1
+        version: 3.0.1
       ua-parser-js:
         specifier: ^2.0.4
         version: 2.0.4
@@ -4311,6 +4314,9 @@ packages:
   split2@4.2.0:
     resolution: {integrity: sha512-UcjcJOWknrNkF6PLX83qcHM6KHgVKNkV62Y8a5uYDVv9ydGQVwAHMKqHdJje1VTWpljG0WYpCDhrCdAOYH4TWg==}
     engines: {node: '>= 10.x'}
+
+  sql-bricks@3.0.1:
+    resolution: {integrity: sha512-ZkU/R+bwf7d9FxlwMJp/31P5bluVCjUuftutkqJjQKH1QMCE1iaEc0xeY0aVepc38fxC+ljUrqausGCzzcHzHQ==}
 
   stoppable@1.1.0:
     resolution: {integrity: sha512-KXDYZ9dszj6bzvnEMRYvxgeTHU74QBFL54XKtP3nyMuJ81CFYtABZ3bAzL2EdFUaEwJOBOgENyFj3R7oTzDyyw==}
@@ -9586,6 +9592,8 @@ snapshots:
   source-map@0.7.6: {}
 
   split2@4.2.0: {}
+
+  sql-bricks@3.0.1: {}
 
   stoppable@1.1.0: {}
 

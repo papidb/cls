@@ -1,5 +1,5 @@
 {
-  "name": "cls-production",
+  "name": "cls-local",
   "main": "src/index.ts",
   "compatibility_date": "2025-08-16",
   "compatibility_flags": [
@@ -7,27 +7,23 @@
     "nodejs_compat_populate_process_env"
   ],
   "vars": {
-    "ANALYTICS_DATASET": "link-clicks-production",
-    "CORS_ORIGIN": "https://cls.danielubenjamin.com",
-    "BETTER_AUTH_URL": "https://api.cls.danielubenjamin.com"
+    "ANALYTICS_DATASET": "link-clicks-local",
+    "CORS_ORIGIN": "http://localhost:3001",
+    "BETTER_AUTH_URL": "http://localhost:3000"
   },
   "kv_namespaces": [
-    {
-      "binding": "LINK_STORE",
-      "id": "de32f73e172145d391f7b13be9f07be7",
-      "preview_id": "de32f73e172145d391f7b13be9f07be7"
-    }
+    { "binding": "LINK_STORE", "id": "link-store", "preview_id": "link-store" }
   ],
   "d1_databases": [
     {
       "binding": "DB",
-      "database_id": "c86e5aed-fa48-4bb5-a215-ffc6ee7830ce",
-      "database_name": "cls-production-db",
+      "database_id": "database",
+      "database_name": "cls-local-db",
       "migrations_dir": "apps/server/src/db/migrations",
-      "preview_database_id": "c86e5aed-fa48-4bb5-a215-ffc6ee7830ce"
+      "preview_database_id": "database"
     }
   ],
   "analytics_engine_datasets": [
-    { "binding": "ANALYTICS", "dataset": "link-clicks-production" }
+    { "binding": "ANALYTICS", "dataset": "link-clicks-local" }
   ]
 }

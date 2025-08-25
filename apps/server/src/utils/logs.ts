@@ -82,3 +82,22 @@ export function doubles2logs(doubles: number[]) {
     return logs;
   }, {} as Partial<LogsMap>);
 }
+
+// @ts-expect-error
+export const LOG_COLS = Array.from(
+  new Set([...Object.values(blobsMap), ...Object.values(doublesMap)])
+) as const;
+
+// string literal union type of all valid logical columns
+export type LogCol = (typeof LOG_COLS)[number];
+
+// helper to map logical column -> physical column name
+export function toPhysical(col: LogCol): string {
+  // if (col === "timestamp") return "timestamp";
+  const b = Object.entries(blobsMap).find(([, v]) => v === col);
+  if (b) return b[0];
+  const d = Object.entries(doublesMap).find(([, v]) => v === col);
+  if (d) return d[0];
+  // should never happen if LOG_COLS is built from maps
+  throw new Error(`Unknown column ${col}`);
+}

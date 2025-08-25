@@ -1,6 +1,5 @@
 // analytics-sql.ts
 import { blobsMap, doublesMap, type LogsMap } from "@/utils/logs";
-import { env } from "cloudflare:workers";
 
 // ---------- helpers ----------
 const sqlString = (v: string) => `'${v.replace(/'/g, "''")}'`;
@@ -48,8 +47,8 @@ export class AEQuery {
   private _limit?: number;
   private _dataset: string;
 
-  constructor(dataset = env.ANALYTICS_DATASET) {
-    this._dataset = sqlIdent(dataset);
+  constructor(dataset = "link-clicks-production") {
+    this._dataset = `'${dataset}'`;
   }
 
   // common aggregations
