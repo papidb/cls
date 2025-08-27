@@ -26,51 +26,50 @@ function RouteComponent() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   return (
-    <div className="container mx-auto max-w-4xl px-4 py-8">
-      <div className="flex items-center justify-between mb-8">
-        <h1 className="text-3xl font-bold">Dashboard</h1>
-        <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-          <SheetTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Create Link
-            </Button>
-          </SheetTrigger>
-          <SheetContent>
-            <SheetHeader>
-              <SheetTitle>Create New Link</SheetTitle>
-              <SheetDescription>
-                Create a new shortened link with optional description and
-                expiration.
-              </SheetDescription>
-            </SheetHeader>
-            <div className="mt-6 px-4">
-              <CreateLinkForm onSuccess={() => setIsSheetOpen(false)} />
-            </div>
-          </SheetContent>
-        </Sheet>
-      </div>
+    <div className="min-h-screen px-6 py-12">
+      <div className="container mx-auto max-w-3xl space-y-16">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-light tracking-wide text-foreground">Your Links</h1>
+          <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+            <SheetTrigger asChild>
+              <button className="px-6 py-2 text-sm font-light border border-border hover:bg-muted/30 transition-colors tracking-wide">
+                <Plus className="mr-2 h-3 w-3" />
+                New Link
+              </button>
+            </SheetTrigger>
+            <SheetContent className="w-full sm:max-w-md">
+              <SheetHeader className="space-y-4 text-left">
+                <SheetTitle className="text-xl font-light tracking-wide">Create New Link</SheetTitle>
+                <SheetDescription className="text-sm font-light text-muted-foreground leading-relaxed">
+                  Create a shortened link with optional description and expiration.
+                </SheetDescription>
+              </SheetHeader>
+              <div className="mt-8">
+                <CreateLinkForm onSuccess={() => setIsSheetOpen(false)} />
+              </div>
+            </SheetContent>
+          </Sheet>
+        </div>
 
-      <div className="space-y-4">
-        <h2 className="text-xl font-semibold">Your Links</h2>
-        {links.data && links.data.length > 0 ? (
-          <div className="grid gap-4">
-            {links.data.map((link) => (
-              <PreviewLink key={link.id} link={link} />
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">No links created yet.</p>
-            <Button
-              variant="outline"
-              className="mt-4"
-              onClick={() => setIsSheetOpen(true)}
-            >
-              Create your first link
-            </Button>
-          </div>
-        )}
+        <div className="space-y-8">
+          {links.data && links.data.length > 0 ? (
+            <div className="space-y-6">
+              {links.data.map((link) => (
+                <PreviewLink key={link.id} link={link} />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-24 space-y-6">
+              <p className="text-base font-light text-muted-foreground">No links created yet</p>
+              <button
+                className="px-8 py-3 text-sm font-light border border-border hover:bg-muted/30 transition-colors tracking-wide"
+                onClick={() => setIsSheetOpen(true)}
+              >
+                Create your first link
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

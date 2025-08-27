@@ -4,25 +4,39 @@ import { Link } from "@tanstack/react-router";
 export function PreviewLink({ link }: { link: LinkType }) {
   return (
     <Link to="/links/$slug" params={{ slug: link.slug.toString() }}>
-      <div className="border rounded-lg p-4 hover:bg-accent/50 transition-colors cursor-pointer">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="font-medium">/{link.slug}</h3>
-            <p className="text-sm text-muted-foreground truncate max-w-md">
-              {link.url}
-            </p>
-            {link.description && (
-              <p className="text-sm mt-1">{link.description}</p>
-            )}
-            {link.expiration && (
-              <p className="text-xs text-muted-foreground mt-1">
-                Expires: {new Date(link.expiration).toLocaleDateString()}
+      <div className="border-b border-border pb-6 hover:opacity-60 transition-opacity cursor-pointer group">
+        <div className="space-y-3">
+          <div className="flex items-start justify-between">
+            <div className="space-y-2 flex-1">
+              <h3 className="text-lg font-light tracking-wide text-foreground group-hover:text-muted-foreground transition-colors">
+                /{link.slug}
+              </h3>
+              <p className="text-sm font-light text-muted-foreground/80 leading-relaxed break-all">
+                {link.url}
               </p>
-            )}
+              {link.description && (
+                <p className="text-sm font-light text-muted-foreground leading-relaxed mt-2">
+                  {link.description}
+                </p>
+              )}
+            </div>
+            <div className="text-xs font-light text-muted-foreground/60 ml-4 flex-shrink-0">
+              {new Date(link.createdAt).toLocaleDateString('en-US', { 
+                month: 'short', 
+                day: 'numeric',
+                year: 'numeric'
+              })}
+            </div>
           </div>
-          <div className="text-sm text-muted-foreground">
-            Created: {new Date(link.createdAt).toLocaleDateString()}
-          </div>
+          {link.expiration && (
+            <p className="text-xs font-light text-muted-foreground/60">
+              Expires {new Date(link.expiration).toLocaleDateString('en-US', { 
+                month: 'short', 
+                day: 'numeric',
+                year: 'numeric'
+              })}
+            </p>
+          )}
         </div>
       </div>
     </Link>

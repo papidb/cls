@@ -1,7 +1,6 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -66,17 +65,21 @@ export function CreateLinkForm({ onSuccess }: CreateLinkFormProps) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         <FormField
           control={form.control}
           name="url"
           render={({ field }) => (
-            <FormItem>
-              <FormLabel>URL *</FormLabel>
+            <FormItem className="space-y-2">
+              <FormLabel className="text-sm font-light text-muted-foreground">URL *</FormLabel>
               <FormControl>
-                <Input placeholder="https://example.com" {...field} />
+                <Input 
+                  placeholder="https://example.com" 
+                  {...field} 
+                  className="border-0 border-b border-border rounded-none bg-transparent px-0 py-3 text-base font-light placeholder:text-muted-foreground/40 focus:border-foreground focus:ring-0"
+                />
               </FormControl>
-              <FormMessage />
+              <FormMessage className="text-sm font-light" />
             </FormItem>
           )}
         />
@@ -85,15 +88,19 @@ export function CreateLinkForm({ onSuccess }: CreateLinkFormProps) {
           control={form.control}
           name="slug"
           render={({ field }) => (
-            <FormItem>
-              <FormLabel>Slug *</FormLabel>
+            <FormItem className="space-y-2">
+              <FormLabel className="text-sm font-light text-muted-foreground">Slug *</FormLabel>
               <FormControl>
-                <Input placeholder="my-link" {...field} />
+                <Input 
+                  placeholder="my-link" 
+                  {...field} 
+                  className="border-0 border-b border-border rounded-none bg-transparent px-0 py-3 text-base font-light placeholder:text-muted-foreground/40 focus:border-foreground focus:ring-0"
+                />
               </FormControl>
-              <FormDescription>
-                This will be the short identifier for your link
+              <FormDescription className="text-xs font-light text-muted-foreground/60 mt-1">
+                Short identifier for your link
               </FormDescription>
-              <FormMessage />
+              <FormMessage className="text-sm font-light" />
             </FormItem>
           )}
         />
@@ -102,12 +109,16 @@ export function CreateLinkForm({ onSuccess }: CreateLinkFormProps) {
           control={form.control}
           name="description"
           render={({ field }) => (
-            <FormItem>
-              <FormLabel>Description</FormLabel>
+            <FormItem className="space-y-2">
+              <FormLabel className="text-sm font-light text-muted-foreground">Description</FormLabel>
               <FormControl>
-                <Input placeholder="Optional description" {...field} />
+                <Input 
+                  placeholder="Optional description" 
+                  {...field} 
+                  className="border-0 border-b border-border rounded-none bg-transparent px-0 py-3 text-base font-light placeholder:text-muted-foreground/40 focus:border-foreground focus:ring-0"
+                />
               </FormControl>
-              <FormMessage />
+              <FormMessage className="text-sm font-light" />
             </FormItem>
           )}
         />
@@ -116,26 +127,31 @@ export function CreateLinkForm({ onSuccess }: CreateLinkFormProps) {
           control={form.control}
           name="expiration"
           render={({ field }) => (
-            <FormItem>
-              <FormLabel>Expiration Date</FormLabel>
+            <FormItem className="space-y-2">
+              <FormLabel className="text-sm font-light text-muted-foreground">Expiration Date</FormLabel>
               <FormControl>
                 <Input 
                   type="datetime-local" 
                   min={new Date().toISOString().slice(0, 16)}
                   {...field} 
+                  className="border-0 border-b border-border rounded-none bg-transparent px-0 py-3 text-base font-light placeholder:text-muted-foreground/40 focus:border-foreground focus:ring-0"
                 />
               </FormControl>
-              <FormDescription>
-                Leave empty for links that don't expire
+              <FormDescription className="text-xs font-light text-muted-foreground/60 mt-1">
+                Leave empty for permanent links
               </FormDescription>
-              <FormMessage />
+              <FormMessage className="text-sm font-light" />
             </FormItem>
           )}
         />
 
-        <Button type="submit" className="w-full" disabled={createLink.isPending}>
+        <button 
+          type="submit" 
+          disabled={createLink.isPending}
+          className="w-full py-4 text-foreground border border-border hover:bg-muted/30 transition-colors text-base font-light tracking-wide disabled:opacity-50 disabled:cursor-not-allowed mt-8"
+        >
           {createLink.isPending ? "Creating..." : "Create Link"}
-        </Button>
+        </button>
       </form>
     </Form>
   );
