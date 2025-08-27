@@ -22,9 +22,26 @@ export default function UserMenu() {
 
 	if (!session) {
 		return (
-			<Button variant="outline" asChild>
-				<Link to="/login">Sign In</Link>
-			</Button>
+			<div className="flex items-center gap-4">
+				<Link
+					to="/login"
+					className="text-sm font-bold text-muted-foreground hover:text-foreground transition-colors"
+					activeProps={{
+						className: "text-sm font-bold text-foreground underline"
+					}}
+				>
+					Login
+				</Link>
+				<Link
+					to="/register"
+					className="text-sm font-bold text-muted-foreground hover:text-foreground transition-colors"
+					activeProps={{
+						className: "text-sm font-bold text-foreground underline"
+					}}
+				>
+					Register
+				</Link>
+			</div>
 		);
 	}
 

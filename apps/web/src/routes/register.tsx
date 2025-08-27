@@ -1,18 +1,18 @@
+import Loader from "@/components/loader";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { authClient } from "@/lib/auth-client";
 import { useForm } from "@tanstack/react-form";
-import { useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import z from "zod";
-import Loader from "./loader";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { Label } from "./ui/label";
 
-export default function SignUpForm({
-  onSwitchToSignIn,
-}: {
-  onSwitchToSignIn: () => void;
-}) {
+export const Route = createFileRoute("/register")({
+  component: SignUpForm,
+});
+
+function SignUpForm() {
   const navigate = useNavigate({
     from: "/",
   });
@@ -151,13 +151,12 @@ export default function SignUpForm({
       </form>
 
       <div className="mt-4 text-center">
-        <Button
-          variant="link"
-          onClick={onSwitchToSignIn}
-          className="text-indigo-600 hover:text-indigo-800"
+        <Link
+          to="/login"
+          className="text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           Already have an account? Sign In
-        </Button>
+        </Link>
       </div>
     </div>
   );

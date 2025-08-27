@@ -48,7 +48,7 @@ function RouteComponent() {
                   expiration.
                 </SheetDescription>
               </SheetHeader>
-              <div className="mt-8">
+              <div className="mt-8 px-4">
                 <CreateLinkForm onSuccess={() => setIsSheetOpen(false)} />
               </div>
             </SheetContent>
