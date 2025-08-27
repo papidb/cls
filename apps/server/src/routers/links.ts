@@ -5,13 +5,15 @@ import {
 } from "@/schema/payload.schema";
 import { LinkService } from "@/service/link.service";
 import z from "zod";
-import { protectedProcedure, publicProcedure, router } from "../lib/trpc";
+import { protectedProcedure, router } from "../lib/trpc";
 
 export const linksRouter = router({
-  getAll: publicProcedure.input(queryLinksPayloadSchema).query(({ input }) => {
-    const linkService = getFromContainer(LinkService);
-    return linkService.getLinks(input);
-  }),
+  getAll: protectedProcedure
+    .input(queryLinksPayloadSchema)
+    .query(({ input }) => {
+      const linkService = getFromContainer(LinkService);
+      return linkService.getLinks(input);
+    }),
   create: protectedProcedure
     .input(createLinkPayloadSchema)
     .mutation(async ({ input, ctx }) => {
