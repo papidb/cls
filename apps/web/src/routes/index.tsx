@@ -5,7 +5,6 @@ export const Route = createFileRoute("/")({
 });
 
 function HomeComponent() {
-
   return (
     <div className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center px-6">
       <div className="w-full max-w-md space-y-12">
@@ -18,7 +17,7 @@ function HomeComponent() {
 
         <div className="space-y-8">
           <Link
-            to="/dashboard"
+            to="/links"
             className="w-full py-4 text-foreground border border-border hover:bg-muted/30 transition-colors text-base"
           >
             Create Link

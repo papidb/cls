@@ -10,19 +10,14 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
-import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as SlugRouteImport } from './routes/$slug'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as LinksIndexRouteImport } from './routes/links/index'
 import { Route as LinksSlugRouteImport } from './routes/links/$slug'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DashboardRoute = DashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SlugRoute = SlugRouteImport.update({
@@ -35,6 +30,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LinksIndexRoute = LinksIndexRouteImport.update({
+  id: '/links/',
+  path: '/links/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LinksSlugRoute = LinksSlugRouteImport.update({
   id: '/links/$slug',
   path: '/links/$slug',
@@ -44,39 +44,39 @@ const LinksSlugRoute = LinksSlugRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$slug': typeof SlugRoute
-  '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/links/$slug': typeof LinksSlugRoute
+  '/links': typeof LinksIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/$slug': typeof SlugRoute
-  '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/links/$slug': typeof LinksSlugRoute
+  '/links': typeof LinksIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/$slug': typeof SlugRoute
-  '/dashboard': typeof DashboardRoute
   '/login': typeof LoginRoute
   '/links/$slug': typeof LinksSlugRoute
+  '/links/': typeof LinksIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/$slug' | '/dashboard' | '/login' | '/links/$slug'
+  fullPaths: '/' | '/$slug' | '/login' | '/links/$slug' | '/links'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/$slug' | '/dashboard' | '/login' | '/links/$slug'
-  id: '__root__' | '/' | '/$slug' | '/dashboard' | '/login' | '/links/$slug'
+  to: '/' | '/$slug' | '/login' | '/links/$slug' | '/links'
+  id: '__root__' | '/' | '/$slug' | '/login' | '/links/$slug' | '/links/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   SlugRoute: typeof SlugRoute
-  DashboardRoute: typeof DashboardRoute
   LoginRoute: typeof LoginRoute
   LinksSlugRoute: typeof LinksSlugRoute
+  LinksIndexRoute: typeof LinksIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -86,13 +86,6 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dashboard': {
-      id: '/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/$slug': {
@@ -109,6 +102,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/links/': {
+      id: '/links/'
+      path: '/links'
+      fullPath: '/links'
+      preLoaderRoute: typeof LinksIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/links/$slug': {
       id: '/links/$slug'
       path: '/links/$slug'
@@ -122,9 +122,9 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SlugRoute: SlugRoute,
-  DashboardRoute: DashboardRoute,
   LoginRoute: LoginRoute,
   LinksSlugRoute: LinksSlugRoute,
+  LinksIndexRoute: LinksIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -1,6 +1,5 @@
 import { CreateLinkForm } from "@/components/links/create-link-form";
 import { PreviewLink } from "@/components/links/single-link";
-import { Button } from "@/components/ui/button";
 import {
   Sheet,
   SheetContent,
@@ -15,7 +14,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 import { useState } from "react";
 
-export const Route = createFileRoute("/dashboard")({
+export const Route = createFileRoute("/links/")({
   component: RouteComponent,
   loader: ({ context }) =>
     context.queryClient.ensureQueryData(trpc.links.getAll.queryOptions()),
@@ -29,7 +28,9 @@ function RouteComponent() {
     <div className="min-h-screen px-6 py-12">
       <div className="container mx-auto max-w-3xl space-y-16">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-light tracking-wide text-foreground">Your Links</h1>
+          <h1 className="text-2xl font-light tracking-wide text-foreground">
+            Your Links
+          </h1>
           <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
             <SheetTrigger asChild>
               <button className="px-6 py-2 text-sm font-light border border-border hover:bg-muted/30 transition-colors tracking-wide">
@@ -39,9 +40,12 @@ function RouteComponent() {
             </SheetTrigger>
             <SheetContent className="w-full sm:max-w-md">
               <SheetHeader className="space-y-4 text-left">
-                <SheetTitle className="text-xl font-light tracking-wide">Create New Link</SheetTitle>
+                <SheetTitle className="text-xl font-light tracking-wide">
+                  Create New Link
+                </SheetTitle>
                 <SheetDescription className="text-sm font-light text-muted-foreground leading-relaxed">
-                  Create a shortened link with optional description and expiration.
+                  Create a shortened link with optional description and
+                  expiration.
                 </SheetDescription>
               </SheetHeader>
               <div className="mt-8">
@@ -60,7 +64,9 @@ function RouteComponent() {
             </div>
           ) : (
             <div className="text-center py-24 space-y-6">
-              <p className="text-base font-light text-muted-foreground">No links created yet</p>
+              <p className="text-base font-light text-muted-foreground">
+                No links created yet
+              </p>
               <button
                 className="px-8 py-3 text-sm font-light border border-border hover:bg-muted/30 transition-colors tracking-wide"
                 onClick={() => setIsSheetOpen(true)}

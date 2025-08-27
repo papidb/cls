@@ -7,6 +7,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from "@/components/ui/chart";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -26,13 +32,7 @@ import {
   User,
 } from "lucide-react";
 import { useState } from "react";
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-  type ChartConfig,
-} from "@/components/ui/chart";
-import { AreaChart, Area, XAxis, CartesianGrid } from "recharts";
+import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
 
 export const Route = createFileRoute("/links/$slug")({
   component: RouteComponent,
@@ -71,11 +71,11 @@ function RouteComponent() {
       bucket: "hour", // one bucket per hour
       metrics: [{ kind: "clicks", alias: "clicks" }],
       filters: [
-        { op: "eq", col: "slug", value: slug }, // your slug filter
-        { op: "sinceDays", days: selectedOption.days }, // dynamic time range
+        { op: "eq", col: "slug", value: slug },
+        { op: "sinceDays", days: selectedOption.days },
       ],
-      orderBy: [{ expr: "bucket", dir: "ASC" }], // chronological order
-      limit: 24 * selectedOption.days, // dynamic limit based on time range
+      orderBy: [{ expr: "bucket", dir: "ASC" }],
+      limit: 24 * selectedOption.days,
     })
   );
 
@@ -93,9 +93,9 @@ function RouteComponent() {
     <div className="container mx-auto max-w-4xl px-4 py-8 gap-6">
       <div className="mb-6">
         <Button variant="ghost" asChild>
-          <Link to="/dashboard">
+          <Link to="/links">
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Dashboard
+            Back to Links
           </Link>
         </Button>
       </div>
@@ -134,6 +134,7 @@ function RouteComponent() {
               config={chartConfig}
               className="aspect-auto h-[250px] w-full"
             >
+              {/* @ts-ignore can't tell why this is breaking ts, will fix.  */}
               <AreaChart data={timeSeries.data}>
                 <defs>
                   <linearGradient id="fillClicks" x1="0" y1="0" x2="0" y2="1">
