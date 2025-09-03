@@ -12,8 +12,9 @@ import { config } from "dotenv";
 
 const stage = process.env.STAGE ?? "local";
 
-const webDomain = "cls.danielubenjamin.com";
-const apiDomain = "api.cls.danielubenjamin.com";
+const domain = "danielubenjamin.com";
+const webDomain = `cls.${domain}`;
+const apiDomain = `api.cls.${domain}`;
 
 config({ path: "./.env" });
 if (stage === "production") {
@@ -36,10 +37,12 @@ await Exec("db-generate", {
 const db = await D1Database("database", {
   name: `${app.name}-${app.stage}-db`,
   migrationsDir: "apps/server/src/db/migrations",
+  adopt: true,
 });
 
 const linkStore = await KVNamespace("link-store", {
   title: `link-store-${app.stage}`,
+  adopt: true,
 });
 
 const analytics = AnalyticsEngineDataset("analytics", {
@@ -67,6 +70,7 @@ export const server = await Worker("server", {
     port: 3000,
   },
   domains: [apiDomain],
+  adopt: true,
 });
 
 export const web = await Vite("web", {
@@ -80,6 +84,7 @@ export const web = await Vite("web", {
     command: "pnpm run dev",
   },
   domains: [webDomain],
+  adopt: true,
 });
 
 await WranglerJson("wrangler", {
