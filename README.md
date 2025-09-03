@@ -1,20 +1,15 @@
-# cls
+# Cloudflare Link Shortener (cls)
 
-This project was created with [Better-T-Stack](https://github.com/AmanVarshney01/create-better-t-stack), a modern TypeScript stack that combines React, TanStack Router, Hono, TRPC, and more.
+This project was created with [Better-T-Stack](https://github.com/AmanVarshney01/create-better-t-stack),
+It was inspired by my talk on [Building APIs on Cloudflare](https://cls.danielubenjamin.com/building-apis-on-cloudflare), and what is better way to show what cloudflare can do than build a url shortener.
 
 ## Features
 
-- **TypeScript** - For type safety and improved developer experience
-- **TanStack Router** - File-based routing with full type safety
-- **TailwindCSS** - Utility-first CSS for rapid UI development
-- **shadcn/ui** - Reusable UI components
-- **Hono** - Lightweight, performant server framework
-- **tRPC** - End-to-end type-safe APIs
-- **workers** - Runtime environment
-- **Drizzle** - TypeScript-first ORM
-- **SQLite/Turso** - Database engine
-- **Authentication** - Email & password authentication with Better Auth
-- **Turborepo** - Optimized monorepo build system
+- **Authentication**: Email & password authentication with [Better Auth](https://www.better-auth.com/)
+- Analytics: 
+- Database: 
+- Server:
+- Frontend: 
 
 ## Getting Started
 
@@ -23,20 +18,17 @@ First, install the dependencies:
 ```bash
 pnpm install
 ```
+
 ## Database Setup
 
-This project uses SQLite with Drizzle ORM.
+This project uses [D1](https://developers.cloudflare.com/d1/) with Drizzle ORM.
 
-1. Start the local SQLite database:
+1. Start the local D1 database:
 Local development for a Cloudflare D1 database will already be running as part of the `wrangler dev` command.
 
-2. Update your `.env` file in the `apps/server` directory with the appropriate connection details if needed.
+2. Grab your cloudflare Token and account ID from the [dashboard](dash.cloudflare.com)_.
 
-3. Apply the schema to your database:
-```bash
-pnpm db:push
-```
-
+3. Update your `.env` file in the `apps/server` directory with the your cloudflare api token and account id.
 
 Then, run the development server:
 
@@ -47,11 +39,9 @@ pnpm dev
 Open [http://localhost:3001](http://localhost:3001) in your browser to see the web application.
 The API is running at [http://localhost:3000](http://localhost:3000).
 
-
-
 ## Project Structure
 
-```
+```bash
 cls/
 ├── apps/
 │   ├── web/         # Frontend application (React + TanStack Router)
@@ -68,5 +58,7 @@ cls/
 - `pnpm db:push`: Push schema changes to database
 - `pnpm db:studio`: Open database studio UI
 - `cd apps/server && pnpm db:local`: Start the local SQLite database
-# cls
-# cls
+
+## Limitations
+
+OG Images are missing from generated urls. 
