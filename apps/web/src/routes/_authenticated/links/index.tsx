@@ -8,13 +8,14 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { authClient } from "@/lib/auth-client";
 import { trpc } from "@/utils/trpc";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 import { useState } from "react";
 
-export const Route = createFileRoute("/links/")({
+export const Route = createFileRoute("/_authenticated/links/")({
   component: RouteComponent,
   loader: ({ context }) =>
     context.queryClient.ensureQueryData(trpc.links.getAll.queryOptions()),

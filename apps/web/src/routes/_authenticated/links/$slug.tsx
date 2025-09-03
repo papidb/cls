@@ -34,7 +34,7 @@ import {
 import { useState } from "react";
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
 
-export const Route = createFileRoute("/links/$slug")({
+export const Route = createFileRoute("/_authenticated/links/$slug")({
   component: RouteComponent,
   loader: ({ context, params }) =>
     Promise.all([
