@@ -50,7 +50,7 @@ pnpm db:push
 Then, run the development server:
 
 ```bash
-pnpm dev
+pnpm alchemy:dev
 ```
 
 Open [http://localhost:3001](http://localhost:3001) in your browser to see the web application.
@@ -80,7 +80,7 @@ cls/
 
 ### Database
 - `pnpm db:generate`: Generate database schema migrations
-- `pnpm db:push`: Push schema changes to database
+<!-- - `pnpm db:push`: Push schema changes to database -->
 
 ### Code Quality
 - `pnpm check-types`: Check TypeScript types across all apps
