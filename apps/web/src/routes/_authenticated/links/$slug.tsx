@@ -1,3 +1,4 @@
+import { TrafficMap } from "@/components/analytics/traffic-map";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -31,7 +32,7 @@ import {
   Hash,
   User,
 } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
 
 export const Route = createFileRoute("/_authenticated/links/$slug")({
@@ -78,6 +79,33 @@ function RouteComponent() {
       limit: 24 * selectedOption.days,
     })
   );
+
+  const geoData = useQuery(
+    trpc.analytics.metrics.queryOptions({
+      dimensions: [{ col: "country", alias: "country" }],
+      metrics: [{ kind: "clicks", alias: "clicks" }],
+      filters: [
+        { op: "eq", col: "slug", value: slug },
+        { op: "sinceDays", days: 30 },
+      ],
+      orderBy: [{ expr: "clicks", dir: "DESC" }],
+      limit: 20,
+    })
+  );
+
+  const trafficByCountry = useMemo(() => {
+    if (!geoData.data) return {};
+    return (
+      geoData.data as unknown as { country: string; clicks: string }[]
+    ).reduce((acc: Record<string, number>, item: any) => {
+      // console.log(item)
+      if (item.country) {
+        acc[item.country] = item.clicks;
+      }
+      return acc;
+    }, {});
+  }, [geoData.data]);
+  console.log({ trafficByCountry });
 
   const shortUrl = `${window.location.origin}/${link.data.slug}`;
 
@@ -200,6 +228,26 @@ function RouteComponent() {
 
       <Card>
         <CardHeader>
+          <CardTitle>Clicks by Country</CardTitle>
+          <CardDescription>
+            Geographic distribution of clicks over the selected time period
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {geoData.data && geoData.data.length > 0 ? (
+            <TrafficMap trafficByCountry={trafficByCountry} />
+          ) : (
+            <div className="flex items-center justify-center h-64 text-muted-foreground">
+              {geoData.isLoading
+                ? "Loading geographic data..."
+                : "No geographic data available"}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="text-2xl">Link Details</CardTitle>
@@ -220,7 +268,12 @@ function RouteComponent() {
                   Short URL
                 </label>
                 <div className="flex items-center gap-2">
-                  <a className="pointer" href={shortUrl} target="_blank" rel="noopener noreferrer">
+                  <a
+                    className="pointer"
+                    href={shortUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     <code className="flex-1 px-3 py-2 bg-muted rounded text-sm">
                       {shortUrl}
                     </code>
