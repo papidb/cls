@@ -214,24 +214,19 @@ function RouteComponent() {
             <div className="space-y-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium flex items-center gap-2">
-                  <Hash className="h-4 w-4" />
+                  <a href={shortUrl} target="_blank" rel="noopener noreferrer">
+                    <Hash className="h-4 w-4" />
+                  </a>
                   Short URL
                 </label>
                 <div className="flex items-center gap-2">
-                  <code className="flex-1 px-3 py-2 bg-muted rounded text-sm">
-                    {shortUrl}
-                  </code>
+                  <a className="pointer" href={shortUrl} target="_blank" rel="noopener noreferrer">
+                    <code className="flex-1 px-3 py-2 bg-muted rounded text-sm">
+                      {shortUrl}
+                    </code>
+                  </a>
                   <Button size="sm" variant="outline" onClick={copyShortUrl}>
                     <Copy className="h-4 w-4" />
-                  </Button>
-                  <Button size="sm" variant="outline" asChild>
-                    <a
-                      href={shortUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <ExternalLink className="h-4 w-4" />
-                    </a>
                   </Button>
                 </div>
               </div>
