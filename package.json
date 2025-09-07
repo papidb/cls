@@ -10,7 +10,7 @@
 		"deploy": "STAGE=production alchemy deploy",
 		"destroy": "alchemy destroy",
 		"alchemy:dev": "alchemy dev",
-		"dev": "turbo dev",
+		"dev": "alchemy dev",
 		"build": "turbo build",
 		"check-types": "turbo check-types",
 		"dev:native": "turbo -F native dev",

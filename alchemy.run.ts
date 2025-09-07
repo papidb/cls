@@ -3,7 +3,7 @@ import {
   AnalyticsEngineDataset,
   D1Database,
   KVNamespace,
-  Vite,
+  TanStackStart,
   Worker,
   WranglerJson,
 } from "alchemy/cloudflare";
@@ -73,12 +73,13 @@ export const server = await Worker("server", {
   adopt: true,
 });
 
-export const web = await Vite("web", {
+export const web = await TanStackStart("website", {
   cwd: "apps/web",
   name: `${app.name}-${app.stage}-web`,
   assets: "dist",
   bindings: {
     VITE_SERVER_URL: process.env.VITE_SERVER_URL || "",
+    LINK_STORE: linkStore,
   },
   dev: {
     command: "pnpm run dev",
