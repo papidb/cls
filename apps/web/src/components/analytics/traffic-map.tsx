@@ -1,5 +1,5 @@
-import { scaleLinear } from "d3-scale";
-import { memo, useMemo } from "react";
+import { scaleQuantize } from "d3-scale";
+import { memo } from "react";
 import {
   ComposableMap,
   Geographies,
@@ -14,31 +14,24 @@ interface TrafficMapProps {
   trafficByCountry: Record<string, number>;
 }
 
+const geos = feature(world110m as any, (world110m as any).objects.countries);
+
 export const TrafficMap = memo(function TrafficMap({
   trafficByCountry,
 }: TrafficMapProps) {
-  const geos = useMemo(
-    () => feature(world110m as any, (world110m as any).objects.countries),
-    []
-  );
   const values = Object.values(trafficByCountry);
   const max = values.length ? Math.max(...values) : 0;
 
-  const colorScale = useMemo(
-    () =>
-      scaleLinear<string>().domain([0, max]).range([
-        "hsl(var(--muted))",
-        "hsl(var(--primary))",
-        // "hsl(var(--muted))",
-        // "hsl(var(--primary) / 0.2)",
-        // "hsl(var(--primary) / 0.4)",
-        // "hsl(var(--primary) / 0.6)",
-        // "hsl(var(--primary))",
-      ]),
-    [max]
-  );
+  const color = scaleQuantize<string>()
+    .domain([0, max])
+    .range([
+      "oklch(from var(--primary) l c h / 0.5)",
+      "oklch(from var(--primary) l c h / 0.65)",
+      "oklch(from var(--primary) l c h / 0.80)",
+      "oklch(from var(--primary) l c h / 0.95)",
+      "oklch(from var(--primary) l c h / 1)",
+    ]);
 
-  console.log({ max });
   return (
     <div className="w-full">
       <ComposableMap
@@ -52,12 +45,12 @@ export const TrafficMap = memo(function TrafficMap({
               geographies.map((geo) => {
                 const code = geo.properties.a3;
                 const value = Number(trafficByCountry[code] || 0);
-                const fill = colorScale(value);
                 return (
                   <Geography
                     key={geo.rsmKey}
                     geography={geo}
-                    fill={fill}
+                    // OKLCH, visible
+                    fill={color(value)}
                     stroke="#e2e8f0"
                     strokeWidth={0.5}
                     style={{
