@@ -18,6 +18,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import type { QueryClient } from "@tanstack/react-query";
 import type { TRPCOptionsProxy } from "@trpc/tanstack-react-query";
 import type { AppRouter } from "../../../server/src/routers";
+import { seo } from "@/utils/seo";
 export interface RouterAppContext {
   trpc: TRPCOptionsProxy<AppRouter>;
   queryClient: QueryClient;
@@ -33,14 +34,39 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
         name: "viewport",
         content: "width=device-width, initial-scale=1",
       },
-      {
-        title: "My App",
-      },
+      ...seo({
+        title: "CLS",
+        description: `CLS is a url shortener hosted on cloudflare.`,
+      }),
     ],
     links: [
       {
         rel: "stylesheet",
         href: appCss,
+      },
+      {
+        rel: "icon",
+        type: "image/png",
+        href: "/favicon-96x96.png",
+        sizes: "96x96",
+      },
+      {
+        rel: "icon",
+        type: "image/svg+xml",
+        href: "/favicon.svg",
+      },
+      {
+        rel: "shortcut icon",
+        href: "/favicon.ico",
+      },
+      {
+        rel: "apple-touch-icon",
+        sizes: "180x180",
+        href: "/apple-touch-icon.png",
+      },
+      {
+        rel: "manifest",
+        href: "/site.webmanifest",
       },
     ],
   }),
