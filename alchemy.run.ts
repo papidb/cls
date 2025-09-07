@@ -76,10 +76,8 @@ export const server = await Worker("server", {
 export const web = await TanStackStart("website", {
   cwd: "apps/web",
   name: `${app.name}-${app.stage}-web`,
-  assets: "dist",
   bindings: {
     VITE_SERVER_URL: process.env.VITE_SERVER_URL || "",
-    LINK_STORE: linkStore,
   },
   dev: {
     command: "pnpm run dev",
