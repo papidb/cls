@@ -14,5 +14,6 @@ export const Route = createFileRoute("/_authenticated")({
       });
     }
   },
+  ssr: false,
   component: () => <Outlet />,
 });
