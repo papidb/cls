@@ -7,15 +7,15 @@ export function PreviewLink({ link }: { link: LinkType }) {
       <div className="border-b border-border pb-6 hover:opacity-60 transition-opacity cursor-pointer group">
         <div className="space-y-3">
           <div className="flex items-start justify-between">
-            <div className="space-y-2 flex-1">
-              <h3 className="text-lg font-light tracking-wide text-foreground group-hover:text-muted-foreground transition-colors">
+            <div className="space-y-2 flex-1 min-w-0">
+              <h3 className="text-lg font-light tracking-wide text-foreground group-hover:text-muted-foreground transition-colors truncate">
                 /{link.slug}
               </h3>
-              <p className="text-sm font-light text-muted-foreground/80 leading-relaxed break-all">
+              <p className="text-sm font-light text-muted-foreground/80 leading-relaxed truncate">
                 {link.url}
               </p>
               {link.description && (
-                <p className="text-sm font-light text-muted-foreground leading-relaxed mt-2">
+                <p className="text-sm font-light text-muted-foreground leading-relaxed mt-2 truncate">
                   {link.description}
                 </p>
               )}
