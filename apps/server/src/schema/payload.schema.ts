@@ -1,11 +1,24 @@
 import { LOG_COLS } from "@/utils/logs";
+import { DateTime } from "luxon";
 import { z } from "zod";
 
 export const createLinkPayloadSchema = z.object({
   url: z.url(),
   description: z.string().min(2).max(2024).optional(),
   slug: z.string().min(2).max(64),
-  expiration: z.date().min(new Date()).optional(),
+  expiration: z
+    .string()
+    .optional()
+    .transform((val) => {
+      if (!val) return undefined;
+      const date = DateTime.fromISO(val);
+      return date.isValid ? date.toJSDate() : undefined;
+    })
+    .refine((date) => {
+      if (!date) return true;
+      const tomorrow = DateTime.now().plus({ days: 1 }).startOf("day");
+      return DateTime.fromJSDate(date) >= tomorrow;
+    }, "Expiration must be at least one day in the future"),
 });
 
 export type CreateLinkPayload = z.infer<typeof createLinkPayloadSchema>;

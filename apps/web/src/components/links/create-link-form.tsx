@@ -1,6 +1,5 @@
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Form,
   FormControl,
@@ -11,15 +10,33 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { trpcClient, queryClient } from "@/utils/trpc";
-import { toast } from "sonner";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { queryClient, trpc, trpcClient } from "@/utils/trpc";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
+import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
+import { DateTime } from "luxon";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
 
 const formSchema = z.object({
   url: z.string().url("Please enter a valid URL"),
-  slug: z.string().min(2, "Slug must be at least 2 characters").max(64, "Slug must be less than 64 characters"),
-  description: z.string().max(2024, "Description must be less than 2024 characters").optional(),
-  expiration: z.string().optional(),
+  slug: z
+    .string()
+    .min(2, "Slug must be at least 2 characters")
+    .max(64, "Slug must be less than 64 characters"),
+  description: z
+    .string()
+    .max(2024, "Description must be less than 2024 characters")
+    .optional(),
+  expiration: z.date().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -35,17 +52,30 @@ export function CreateLinkForm({ onSuccess }: CreateLinkFormProps) {
       url: "",
       slug: "",
       description: "",
-      expiration: "",
+      expiration: undefined,
     },
   });
 
   const createLink = useMutation({
-    mutationFn: async (input: { url: string; slug: string; description?: string; expiration?: Date }) => {
-      return trpcClient.links.create.mutate(input);
+    mutationFn: async (input: {
+      url: string;
+      slug: string;
+      description?: string;
+      expiration?: Date;
+    }) => {
+      const payload = {
+        url: input.url,
+        slug: input.slug,
+        description: input.description,
+        expiration: input.expiration
+          ? (DateTime.fromJSDate(input.expiration).toISO() as string)
+          : undefined,
+      };
+      return trpcClient.links.create.mutate(payload);
     },
     onSuccess: () => {
       toast.success("Link created successfully!");
-      queryClient.invalidateQueries({ queryKey: [["links", "getAll"], { type: "query" }] });
+      queryClient.invalidateQueries({ queryKey: trpc.links.get.queryKey() });
       form.reset();
       onSuccess?.();
     },
@@ -59,7 +89,7 @@ export function CreateLinkForm({ onSuccess }: CreateLinkFormProps) {
       url: values.url,
       slug: values.slug,
       description: values.description || undefined,
-      expiration: values.expiration ? new Date(values.expiration) : undefined,
+      expiration: values.expiration || undefined,
     });
   };
 
@@ -71,11 +101,13 @@ export function CreateLinkForm({ onSuccess }: CreateLinkFormProps) {
           name="url"
           render={({ field }) => (
             <FormItem className="space-y-2">
-              <FormLabel className="text-sm font-light text-muted-foreground">URL *</FormLabel>
+              <FormLabel className="text-sm font-light text-muted-foreground">
+                URL *
+              </FormLabel>
               <FormControl>
-                <Input 
-                  placeholder="https://example.com" 
-                  {...field} 
+                <Input
+                  placeholder="https://example.com"
+                  {...field}
                   className="border-0 border-b border-border rounded-none bg-transparent px-0 py-3 text-base font-light placeholder:text-muted-foreground/40 focus:border-foreground focus:ring-0"
                 />
               </FormControl>
@@ -89,11 +121,13 @@ export function CreateLinkForm({ onSuccess }: CreateLinkFormProps) {
           name="slug"
           render={({ field }) => (
             <FormItem className="space-y-2">
-              <FormLabel className="text-sm font-light text-muted-foreground">Slug *</FormLabel>
+              <FormLabel className="text-sm font-light text-muted-foreground">
+                Slug *
+              </FormLabel>
               <FormControl>
-                <Input 
-                  placeholder="my-link" 
-                  {...field} 
+                <Input
+                  placeholder="my-link"
+                  {...field}
                   className="border-0 border-b border-border rounded-none bg-transparent px-0 py-3 text-base font-light placeholder:text-muted-foreground/40 focus:border-foreground focus:ring-0"
                 />
               </FormControl>
@@ -110,11 +144,13 @@ export function CreateLinkForm({ onSuccess }: CreateLinkFormProps) {
           name="description"
           render={({ field }) => (
             <FormItem className="space-y-2">
-              <FormLabel className="text-sm font-light text-muted-foreground">Description</FormLabel>
+              <FormLabel className="text-sm font-light text-muted-foreground">
+                Description
+              </FormLabel>
               <FormControl>
-                <Input 
-                  placeholder="Optional description" 
-                  {...field} 
+                <Input
+                  placeholder="Optional description"
+                  {...field}
                   className="border-0 border-b border-border rounded-none bg-transparent px-0 py-3 text-base font-light placeholder:text-muted-foreground/40 focus:border-foreground focus:ring-0"
                 />
               </FormControl>
@@ -128,14 +164,50 @@ export function CreateLinkForm({ onSuccess }: CreateLinkFormProps) {
           name="expiration"
           render={({ field }) => (
             <FormItem className="space-y-2">
-              <FormLabel className="text-sm font-light text-muted-foreground">Expiration Date</FormLabel>
+              <FormLabel className="text-sm font-light text-muted-foreground">
+                Expiration Date
+              </FormLabel>
               <FormControl>
-                <Input 
-                  type="datetime-local" 
-                  min={new Date().toISOString().slice(0, 16)}
-                  {...field} 
-                  className="border-0 border-b border-border rounded-none bg-transparent px-0 py-3 text-base font-light placeholder:text-muted-foreground/40 focus:border-foreground focus:ring-0"
-                />
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className={cn(
+                        "justify-start border-0 border-b border-border rounded-none bg-transparent px-0 py-3 text-base font-light hover:bg-transparent focus:border-foreground focus:ring-0",
+                        !field.value
+                          ? "text-muted-foreground/40"
+                          : "text-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {field.value ? (
+                        format(field.value, "PPP")
+                      ) : (
+                        <span>Pick a date</span>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      selected={field.value}
+                      onSelect={(date) => {
+                        if (date) {
+                          date.setHours(0, 0, 0, 0);
+                          field.onChange(date);
+                        } else {
+                          field.onChange(undefined);
+                        }
+                      }}
+                      disabled={{
+                        before: DateTime.now()
+                          .plus({ days: 1 })
+                          .startOf("day")
+                          .toJSDate(),
+                      }}
+                    />
+                  </PopoverContent>
+                </Popover>
               </FormControl>
               <FormDescription className="text-xs font-light text-muted-foreground/60 mt-1">
                 Leave empty for permanent links
@@ -145,8 +217,8 @@ export function CreateLinkForm({ onSuccess }: CreateLinkFormProps) {
           )}
         />
 
-        <button 
-          type="submit" 
+        <button
+          type="submit"
           disabled={createLink.isPending}
           className="w-full py-4 text-foreground border border-border hover:bg-muted/30 transition-colors text-base font-light tracking-wide disabled:opacity-50 disabled:cursor-not-allowed mt-8"
         >
