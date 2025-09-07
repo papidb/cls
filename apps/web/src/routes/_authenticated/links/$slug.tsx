@@ -19,6 +19,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { getCountryISO3 } from "@/lib/country";
 import { copyToClipboard } from "@/lib/string";
 import { trpc } from "@/utils/trpc";
 import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
@@ -98,14 +99,12 @@ function RouteComponent() {
     return (
       geoData.data as unknown as { country: string; clicks: string }[]
     ).reduce((acc: Record<string, number>, item: any) => {
-      // console.log(item)
       if (item.country) {
-        acc[item.country] = item.clicks;
+        acc[getCountryISO3(item.country)] = item.clicks;
       }
       return acc;
     }, {});
   }, [geoData.data]);
-  console.log({ trafficByCountry });
 
   const shortUrl = `${window.location.origin}/${link.data.slug}`;
 
