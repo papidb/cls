@@ -1,3 +1,5 @@
+import { useMemo } from "react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -6,125 +8,317 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  Calendar,
+  Clock,
+  Copy,
+  ExternalLink,
+  Hash,
+  User,
+  Link as LinkIcon,
+  ShieldCheck,
+} from "lucide-react";
 import type { Link as LinkType } from "@/entities";
 import { copyToClipboard } from "@/lib/string";
-import { Calendar, Copy, ExternalLink, Hash, User } from "lucide-react";
+
+function formatDate(d: string | number | Date) {
+  try {
+    return new Date(d).toLocaleString(undefined, {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } catch {
+    return "—";
+  }
+}
+
+function getFavicon(url: string) {
+  try {
+    const u = new URL(url);
+    return `https://www.google.com/s2/favicons?domain=${u.hostname}&sz=64`;
+  } catch {
+    return undefined;
+  }
+}
+
+function CopyButton({ value, label }: { value: string; label: string }) {
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            className="shrink-0 h-9"
+            onClick={() => copyToClipboard(value)}
+            aria-label={`Copy ${label}`}
+          >
+            <Copy className="h-4 w-4" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Copy {label}</TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+}
+
+function CodeField({
+  value,
+  asLink,
+  ariaLabel,
+}: {
+  value: string;
+  asLink?: boolean;
+  ariaLabel?: string;
+}) {
+  const content = (
+    <code
+      className="block w-full px-3 py-2 rounded-md border bg-muted/50 text-sm font-mono leading-relaxed
+                 border-border/50 hover:border-border transition-colors overflow-hidden text-ellipsis"
+      aria-label={ariaLabel}
+      title={value}
+    >
+      {value}
+    </code>
+  );
+
+  if (!asLink) return content;
+
+  return (
+    <a
+      href={value}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="flex-1 block focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-ring rounded-md"
+    >
+      {content}
+    </a>
+  );
+}
+
+function MetaRow({
+  icon,
+  label,
+  value,
+  code,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  code?: boolean;
+}) {
+  return (
+    <div className="flex items-center justify-between rounded-md border bg-muted/30 border-border/50 p-3">
+      <div className="flex items-center gap-2">
+        {icon}
+        <span className="text-sm font-medium">{label}</span>
+      </div>
+      {code ? (
+        <code
+          className="text-sm font-mono text-muted-foreground truncate max-w-[60%]"
+          title={value}
+        >
+          {value}
+        </code>
+      ) : (
+        <span
+          className="text-sm text-muted-foreground truncate max-w-[60%]"
+          title={value}
+        >
+          {value}
+        </span>
+      )}
+    </div>
+  );
+}
 
 export function LinkDetails({ link }: { link: LinkType }) {
-  const shortUrl = `${window.location.origin}/${link.slug}`;
+  // Safe short URL for SSR
+  const origin =
+    typeof window !== "undefined" && window?.location?.origin
+      ? window.location.origin
+      : "";
+  const shortUrl = origin ? `${origin}/${link.slug}` : `/{slug:${link.slug}}`;
 
-  const copyShortUrl = () => {
-    copyToClipboard(shortUrl);
-  };
+  const isExpired = !!link.expiration && new Date(link.expiration) < new Date();
 
-  const copyOriginalUrl = () => {
-    copyToClipboard(link.url);
-  };
+  const isExpiringSoon =
+    !!link.expiration &&
+    new Date(link.expiration) <
+      new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) &&
+    !isExpired;
+
+  const status = useMemo(() => {
+    if (isExpired) return { label: "Expired", variant: "destructive" as const };
+    if (isExpiringSoon)
+      return { label: "Expires Soon", variant: "secondary" as const };
+    return { label: "Active", variant: "outline" as const };
+  }, [isExpired, isExpiringSoon]);
+
+  const favicon = getFavicon(link.url);
+
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="text-2xl">Link Details</CardTitle>
-            <CardDescription>
+    <Card className="overflow-hidden">
+      <CardHeader className="border-b">
+        <div className="flex items-start justify-between gap-4">
+          <div className="space-y-1">
+            <CardTitle className="text-2xl font-semibold tracking-tight">
+              Link Details
+            </CardTitle>
+            <CardDescription className="text-base">
               View and manage your shortened link
             </CardDescription>
           </div>
+
+          <div className="flex items-center gap-2">
+            <Badge variant={status.variant}>{status.label}</Badge>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    size="sm"
+                    variant="default"
+                    onClick={() => window?.open(shortUrl, "_blank")}
+                  >
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    Visit
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Open short URL in a new tab</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+        </div>
+
+        <div className="mt-4 flex items-center gap-3 text-sm text-muted-foreground">
+          <ShieldCheck className="h-4 w-4" />
+          <span>Hosted on Cloudflare. Links are type-safe and tracked.</span>
         </div>
       </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="grid gap-6 md:grid-cols-2">
-          <div className="space-y-4">
+
+      <CardContent className="p-6">
+        <div className="grid gap-8 lg:grid-cols-2">
+          {/* Left: URLs and Description */}
+          <div className="space-y-6">
+            {/* Short URL */}
             <div className="space-y-2">
-              <label className="text-sm font-medium flex items-center gap-2">
-                <a href={shortUrl} target="_blank" rel="noopener noreferrer">
-                  <Hash className="h-4 w-4" />
-                </a>
+              <div className="flex items-center gap-2 text-sm font-semibold">
+                <Hash className="h-4 w-4 text-blue-500" />
                 Short URL
-              </label>
+              </div>
               <div className="flex items-center gap-2">
-                <a
-                  className="pointer"
-                  href={shortUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <code className="flex-1 px-3 py-2 bg-muted rounded text-sm">
-                    {shortUrl}
-                  </code>
-                </a>
-                <Button size="sm" variant="outline" onClick={copyShortUrl}>
-                  <Copy className="h-4 w-4" />
-                </Button>
+                <CodeField value={shortUrl} asLink ariaLabel="Short URL" />
+                <CopyButton value={shortUrl} label="short URL" />
               </div>
             </div>
 
+            {/* Original URL */}
             <div className="space-y-2">
-              <label className="text-sm font-medium flex items-center gap-2">
-                <ExternalLink className="h-4 w-4" />
+              <div className="flex items-center gap-2 text-sm font-semibold">
+                <LinkIcon className="h-4 w-4 text-green-500" />
                 Original URL
-              </label>
-              <div className="flex items-center gap-2">
-                <code className="flex-1 px-3 py-2 bg-muted rounded text-sm break-all">
-                  {link.url}
-                </code>
-                <Button size="sm" variant="outline" onClick={copyOriginalUrl}>
-                  <Copy className="h-4 w-4" />
-                </Button>
+              </div>
+              <div className="flex items-start gap-2">
+                <div className="flex-1 flex items-center gap-3">
+                  {favicon ? (
+                    <img
+                      src={favicon}
+                      alt=""
+                      className="h-6 w-6 rounded"
+                      loading="lazy"
+                    />
+                  ) : null}
+                  <CodeField value={link.url} ariaLabel="Original URL" />
+                </div>
+                <CopyButton value={link.url} label="original URL" />
               </div>
             </div>
 
-            {link.description && (
+            {/* Description */}
+            {link.description ? (
               <div className="space-y-2">
-                <label className="text-sm font-medium">Description</label>
-                <p className="px-3 py-2 bg-muted rounded text-sm">
+                <div className="text-sm font-semibold">Description</div>
+                <div className="px-3 py-2 rounded-md border bg-muted/50 text-sm border-border/50 leading-relaxed">
                   {link.description}
-                </p>
+                </div>
               </div>
-            )}
+            ) : null}
           </div>
 
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium flex items-center gap-2">
-                <User className="h-4 w-4" />
-                Created By
-              </label>
-              <p className="px-3 py-2 bg-muted rounded text-sm">
-                {link.userId}
-              </p>
+          {/* Right: Metadata */}
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold">Metadata</h3>
             </div>
+            <Separator />
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium flex items-center gap-2">
-                <Calendar className="h-4 w-4" />
-                Created At
-              </label>
-              <p className="px-3 py-2 bg-muted rounded text-sm">
-                {new Date(link.createdAt).toLocaleString()}
-              </p>
-            </div>
+            <div className="space-y-3">
+              <MetaRow
+                icon={<User className="h-4 w-4 text-purple-500" />}
+                label="Created By"
+                value={link.userId ?? "—"}
+                code
+              />
+              <MetaRow
+                icon={<Calendar className="h-4 w-4 text-blue-500" />}
+                label="Created At"
+                value={formatDate(link.createdAt)}
+              />
+              <MetaRow
+                icon={<Clock className="h-4 w-4 text-orange-500" />}
+                label="Last Updated"
+                value={formatDate(link.updatedAt)}
+              />
 
-            {link.expiration && (
-              <div className="space-y-2">
-                <label className="text-sm font-medium flex items-center gap-2">
-                  <Calendar className="h-4 w-4" />
-                  Expires At
-                </label>
-                <p className="px-3 py-2 bg-muted rounded text-sm">
-                  {new Date(link.expiration).toLocaleString()}
-                </p>
-              </div>
-            )}
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium flex items-center gap-2">
-                <Calendar className="h-4 w-4" />
-                Last Updated
-              </label>
-              <p className="px-3 py-2 bg-muted rounded text-sm">
-                {new Date(link.updatedAt).toLocaleString()}
-              </p>
+              {link.expiration ? (
+                <div
+                  className={[
+                    "flex items-center justify-between rounded-md p-3 border",
+                    isExpired
+                      ? "bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800"
+                      : isExpiringSoon
+                      ? "bg-yellow-50 dark:bg-yellow-950/20 border-yellow-200 dark:border-yellow-800"
+                      : "bg-muted/30 border-border/50",
+                  ].join(" ")}
+                >
+                  <div className="flex items-center gap-2">
+                    <Calendar
+                      className={[
+                        "h-4 w-4",
+                        isExpired
+                          ? "text-red-500"
+                          : isExpiringSoon
+                          ? "text-yellow-500"
+                          : "text-green-500",
+                      ].join(" ")}
+                    />
+                    <span className="text-sm font-medium">
+                      {isExpired ? "Expired" : "Expires At"}
+                    </span>
+                  </div>
+                  <span
+                    className={[
+                      "text-sm",
+                      isExpired
+                        ? "text-red-700 dark:text-red-300"
+                        : "text-muted-foreground",
+                    ].join(" ")}
+                  >
+                    {formatDate(link.expiration)}
+                  </span>
+                </div>
+              ) : null}
             </div>
           </div>
         </div>
