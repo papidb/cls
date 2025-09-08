@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,6 +24,8 @@ import {
   User,
   Link as LinkIcon,
   ShieldCheck,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import type { Link as LinkType } from "@/entities";
 import { copyToClipboard } from "@/lib/string";
@@ -144,6 +146,8 @@ function MetaRow({
 }
 
 export function LinkDetails({ link }: { link: LinkType }) {
+  const [isMetadataOpen, setIsMetadataOpen] = useState(false);
+
   // Safe short URL for SSR
   const origin =
     typeof window !== "undefined" && window?.location?.origin
@@ -207,8 +211,8 @@ export function LinkDetails({ link }: { link: LinkType }) {
         </div>
       </CardHeader>
 
-      <CardContent className="p-6">
-        <div className="space-y-8">
+      <CardContent className="px-6">
+        <div>
           {/* URLs and Description */}
           <div className="space-y-6">
             {/* Short URL */}
@@ -251,69 +255,78 @@ export function LinkDetails({ link }: { link: LinkType }) {
           </div>
 
           {/* Metadata */}
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
+          <div className="space-y-4">
+            <button
+              onClick={() => setIsMetadataOpen(!isMetadataOpen)}
+              className="flex items-center justify-between w-full p-3 rounded-lg border bg-muted/30 hover:bg-muted/50 transition-colors"
+            >
               <h3 className="text-lg font-semibold">Metadata</h3>
-            </div>
-            <Separator />
+              {isMetadataOpen ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : (
+                <ChevronDown className="h-4 w-4" />
+              )}
+            </button>
 
-            <div className="space-y-3">
-              <MetaRow
-                icon={<User className="h-4 w-4 text-purple-500" />}
-                label="Created By"
-                value={link.userId ?? "—"}
-                code
-              />
-              <MetaRow
-                icon={<Calendar className="h-4 w-4 text-blue-500" />}
-                label="Created At"
-                value={formatDate(link.createdAt)}
-              />
-              <MetaRow
-                icon={<Clock className="h-4 w-4 text-orange-500" />}
-                label="Last Updated"
-                value={formatDate(link.updatedAt)}
-              />
+            {isMetadataOpen && (
+              <div className="space-y-3">
+                <MetaRow
+                  icon={<User className="h-4 w-4 text-purple-500" />}
+                  label="Created By"
+                  value={link.userId ?? "—"}
+                  code
+                />
+                <MetaRow
+                  icon={<Calendar className="h-4 w-4 text-blue-500" />}
+                  label="Created At"
+                  value={formatDate(link.createdAt)}
+                />
+                <MetaRow
+                  icon={<Clock className="h-4 w-4 text-orange-500" />}
+                  label="Last Updated"
+                  value={formatDate(link.updatedAt)}
+                />
 
-              {link.expiration ? (
-                <div
-                  className={[
-                    "flex items-center justify-between rounded-md p-3 border",
-                    isExpired
-                      ? "bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800"
-                      : isExpiringSoon
-                      ? "bg-yellow-50 dark:bg-yellow-950/20 border-yellow-200 dark:border-yellow-800"
-                      : "bg-muted/30 border-border/50",
-                  ].join(" ")}
-                >
-                  <div className="flex items-center gap-2">
-                    <Calendar
-                      className={[
-                        "h-4 w-4",
-                        isExpired
-                          ? "text-red-500"
-                          : isExpiringSoon
-                          ? "text-yellow-500"
-                          : "text-green-500",
-                      ].join(" ")}
-                    />
-                    <span className="text-sm font-medium">
-                      {isExpired ? "Expired" : "Expires At"}
-                    </span>
-                  </div>
-                  <span
+                {link.expiration ? (
+                  <div
                     className={[
-                      "text-sm",
+                      "flex items-center justify-between rounded-md p-3 border",
                       isExpired
-                        ? "text-red-700 dark:text-red-300"
-                        : "text-muted-foreground",
+                        ? "bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800"
+                        : isExpiringSoon
+                        ? "bg-yellow-50 dark:bg-yellow-950/20 border-yellow-200 dark:border-yellow-800"
+                        : "bg-muted/30 border-border/50",
                     ].join(" ")}
                   >
-                    {formatDate(link.expiration)}
-                  </span>
-                </div>
-              ) : null}
-            </div>
+                    <div className="flex items-center gap-2">
+                      <Calendar
+                        className={[
+                          "h-4 w-4",
+                          isExpired
+                            ? "text-red-500"
+                            : isExpiringSoon
+                            ? "text-yellow-500"
+                            : "text-green-500",
+                        ].join(" ")}
+                      />
+                      <span className="text-sm font-medium">
+                        {isExpired ? "Expired" : "Expires At"}
+                      </span>
+                    </div>
+                    <span
+                      className={[
+                        "text-sm",
+                        isExpired
+                          ? "text-red-700 dark:text-red-300"
+                          : "text-muted-foreground",
+                      ].join(" ")}
+                    >
+                      {formatDate(link.expiration)}
+                    </span>
+                  </div>
+                ) : null}
+              </div>
+            )}
           </div>
         </div>
       </CardContent>
