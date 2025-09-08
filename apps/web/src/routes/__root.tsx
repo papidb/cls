@@ -34,6 +34,18 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
         name: "viewport",
         content: "width=device-width, initial-scale=1",
       },
+      {
+        name: "apple-mobile-web-app-capable",
+        content: "yes",
+      },
+      {
+        name: "apple-mobile-web-app-status-bar-style",
+        content: "black-translucent",
+      },
+      {
+        name: "theme-color",
+        content: "#0d0d0d",
+      },
       ...seo({
         title: "CLS",
         description: `CLS is a url shortener hosted on cloudflare.`,
@@ -80,6 +92,42 @@ function RootDocument() {
     <html lang="en" className="dark">
       <head>
         <HeadContent />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              // Update theme-color meta tag based on current theme
+              function updateThemeColor() {
+                const isDark = document.documentElement.classList.contains('dark');
+                // Get the actual computed background color from CSS variables
+                const computedStyle = getComputedStyle(document.documentElement);
+                const bgColor = computedStyle.getPropertyValue('--background').trim();
+                
+                // Convert oklch to hex for meta tag
+                let themeColor;
+                if (isDark) {
+                  themeColor = '#0d0d0d'; // oklch(0.05 0 0)
+                } else {
+                  themeColor = '#ffffff'; // oklch(1 0 0)
+                }
+                
+                const metaTag = document.querySelector('meta[name="theme-color"]');
+                if (metaTag) {
+                  metaTag.setAttribute('content', themeColor);
+                }
+              }
+              
+              // Update on load
+              updateThemeColor();
+              
+              // Watch for theme changes
+              const observer = new MutationObserver(updateThemeColor);
+              observer.observe(document.documentElement, {
+                attributes: true,
+                attributeFilter: ['class']
+              });
+            `,
+          }}
+        />
       </head>
       <body>
         <ThemeProvider
