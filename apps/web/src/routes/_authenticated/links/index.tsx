@@ -29,7 +29,11 @@ function RouteComponent() {
   const closeCreateLink = (link: LinkType) => {
     setIsSheetOpen(false);
     links.refetch();
-    navigate({ to: "/links/$slug", params: { slug: link.slug } });
+    
+    // Wait for the modal to close before navigating
+    setTimeout(() => {
+      navigate({ to: "/links/$slug", params: { slug: link.slug } });
+    }, 300); // 300ms delay to allow modal close animation
   };
 
   return (
