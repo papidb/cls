@@ -203,13 +203,13 @@ export function LinkDetails({ link }: { link: LinkType }) {
 
         <div className="mt-4 flex items-center gap-3 text-sm text-muted-foreground">
           <ShieldCheck className="h-4 w-4" />
-          <span>Hosted on Cloudflare. Links are type-safe and tracked.</span>
+          <span>Hosted on Cloudflare</span>
         </div>
       </CardHeader>
 
       <CardContent className="p-6">
-        <div className="grid gap-8 lg:grid-cols-2">
-          {/* Left: URLs and Description */}
+        <div className="space-y-8">
+          {/* URLs and Description */}
           <div className="space-y-6">
             {/* Short URL */}
             <div className="space-y-2">
@@ -250,7 +250,7 @@ export function LinkDetails({ link }: { link: LinkType }) {
             ) : null}
           </div>
 
-          {/* Right: Metadata */}
+          {/* Metadata */}
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold">Metadata</h3>
