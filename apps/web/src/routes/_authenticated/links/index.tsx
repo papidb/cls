@@ -8,10 +8,9 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { authClient } from "@/lib/auth-client";
 import { trpc } from "@/utils/trpc";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 import { useState } from "react";
 
@@ -24,6 +23,11 @@ export const Route = createFileRoute("/_authenticated/links/")({
 function RouteComponent() {
   const links = useSuspenseQuery(trpc.links.getAll.queryOptions());
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+
+  const closeCreateLink = () => {
+    setIsSheetOpen(false);
+    links.refetch();
+  };
 
   return (
     <div className="min-h-screen px-6 py-12">
@@ -50,7 +54,7 @@ function RouteComponent() {
                 </SheetDescription>
               </SheetHeader>
               <div className="mt-8 px-4">
-                <CreateLinkForm onSuccess={() => setIsSheetOpen(false)} />
+                <CreateLinkForm onSuccess={closeCreateLink} />
               </div>
             </SheetContent>
           </Sheet>
