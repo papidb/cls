@@ -235,8 +235,18 @@ export function LinkDetails({ link }: { link: LinkType }) {
               </div>
               <div className="flex items-start gap-2">
                 <div className="flex-1">
-                  <div className="px-3 py-2 rounded-md border bg-muted/50 text-sm font-mono leading-relaxed break-all max-h-28 overflow-y-auto">
-                    {link.url}
+                  <div className="px-3 py-2 rounded-md border bg-muted/50 text-sm font-mono leading-relaxed break-all max-h-28 overflow-y-auto flex items-start gap-2">
+                    {favicon ? (
+                      <img
+                        src={favicon}
+                        alt="Favicon"
+                        className="w-4 h-4 mt-0.5 shrink-0"
+                        onError={(e) => {
+                          e.currentTarget.style.display = "none";
+                        }}
+                      />
+                    ) : null}
+                    <span className="flex-1">{link.url}</span>
                   </div>
                 </div>
                 <CopyButton value={link.url} label="original URL" />
@@ -268,7 +278,7 @@ export function LinkDetails({ link }: { link: LinkType }) {
               )}
             </button>
 
-            {isMetadataOpen && (
+            {isMetadataOpen ? (
               <div className="space-y-3">
                 <MetaRow
                   icon={<User className="h-4 w-4 text-purple-500" />}
@@ -326,7 +336,7 @@ export function LinkDetails({ link }: { link: LinkType }) {
                   </div>
                 ) : null}
               </div>
-            )}
+            ) : null}
           </div>
         </div>
       </CardContent>
