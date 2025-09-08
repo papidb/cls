@@ -241,6 +241,9 @@ importers:
       '@types/d3-scale':
         specifier: ^4.0.9
         version: 4.0.9
+      '@types/luxon':
+        specifier: ^3.7.1
+        version: 3.7.1
       '@types/react':
         specifier: ^19.0.12
         version: 19.1.11

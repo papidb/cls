@@ -62,6 +62,7 @@
 		"@testing-library/dom": "^10.4.0",
 		"@testing-library/react": "^16.2.0",
 		"@types/d3-scale": "^4.0.9",
+		"@types/luxon": "^3.7.1",
 		"@types/react": "^19.0.12",
 		"@types/react-dom": "^19.0.4",
 		"@types/react-simple-maps": "^3.0.6",

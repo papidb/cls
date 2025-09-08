@@ -15,6 +15,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import type { Link as LinkType } from "@/entities";
 import { cn } from "@/lib/utils";
 import { queryClient, trpc, trpcClient } from "@/utils/trpc";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -42,7 +43,7 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 interface CreateLinkFormProps {
-  onSuccess?: () => void;
+  onSuccess?: (link: LinkType) => void;
 }
 
 export function CreateLinkForm({ onSuccess }: CreateLinkFormProps) {
@@ -73,11 +74,11 @@ export function CreateLinkForm({ onSuccess }: CreateLinkFormProps) {
       };
       return trpcClient.links.create.mutate(payload);
     },
-    onSuccess: () => {
+    onSuccess: ({ link }) => {
       toast.success("Link created successfully!");
       queryClient.invalidateQueries({ queryKey: trpc.links.get.queryKey() });
       form.reset();
-      onSuccess?.();
+      onSuccess?.(link);
     },
     onError: (error: any) => {
       toast.error(error.message || "Failed to create link");

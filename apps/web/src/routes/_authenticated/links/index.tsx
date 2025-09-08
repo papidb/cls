@@ -8,9 +8,10 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import type { Link as LinkType } from "@/entities";
 import { trpc } from "@/utils/trpc";
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 import { useState } from "react";
 
@@ -23,10 +24,12 @@ export const Route = createFileRoute("/_authenticated/links/")({
 function RouteComponent() {
   const links = useSuspenseQuery(trpc.links.getAll.queryOptions());
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const navigate = useNavigate();
 
-  const closeCreateLink = () => {
+  const closeCreateLink = (link: LinkType) => {
     setIsSheetOpen(false);
     links.refetch();
+    navigate({ to: "/links/$slug", params: { slug: link.slug } });
   };
 
   return (
