@@ -35,7 +35,14 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-const timeEnum = z.enum(["7d", "30d", "90d"]);
+const timeOptions = {
+  "7d": "Last 7 days",
+  "30d": "Last 30 days",
+  "90d": "Last 90 days",
+} as const;
+
+const timeArray = ["7d", "30d", "90d"] as const;
+const timeEnum = z.enum(timeArray);
 type Time = z.infer<typeof timeEnum>;
 const timeToDays = (t: Time) => ({ "7d": 7, "30d": 30, "90d": 90 }[t]);
 
@@ -115,7 +122,7 @@ function RouteComponent() {
     timeSeries: Promise<Array<{ bucket: number; clicks: number }>>;
     geo: Promise<Array<{ country: string; clicks: number }>>;
   };
-  console.log({data})
+  console.log({ data });
 
   // deep-updaters that preserve other keys
   const setTimeSeriesTime = (next: Time) =>
@@ -169,34 +176,18 @@ function RouteComponent() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="w-[160px] justify-between">
-                {
-                  (
-                    {
-                      "7d": "Last 7 days",
-                      "30d": "Last 30 days",
-                      "90d": "Last 90 days",
-                    } as const
-                  )[search.timeSeries.time]
-                }
+                {timeOptions[search.timeSeries.time]}
                 <ChevronDown className="ml-2 h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-[160px]">
-              {(["7d", "30d", "90d"] as const).map((opt) => (
+              {timeArray.map((opt) => (
                 <DropdownMenuItem
                   key={opt}
                   onClick={() => setTimeSeriesTime(opt)}
                   className={search.timeSeries.time === opt ? "bg-accent" : ""}
                 >
-                  {
-                    (
-                      {
-                        "7d": "Last 7 days",
-                        "30d": "Last 30 days",
-                        "90d": "Last 90 days",
-                      } as const
-                    )[opt]
-                  }
+                  {timeOptions[opt]}
                 </DropdownMenuItem>
               ))}
             </DropdownMenuContent>
@@ -213,7 +204,6 @@ function RouteComponent() {
           >
             <Await promise={data.timeSeries}>
               {(series: Array<{ bucket: number; clicks: number }>) => {
-                console.log({series})
                 return series?.length ? (
                   <ChartContainer
                     config={chartConfig}
@@ -292,11 +282,34 @@ function RouteComponent() {
 
       {/* Card 2: Geo — deferred */}
       <Card>
-        <CardHeader>
-          <CardTitle>Clicks by Country</CardTitle>
-          <CardDescription>
-            Geographic distribution of clicks over the selected time period
-          </CardDescription>
+        <CardHeader className="flex items-center gap-2 space-y-0 border-b py-5 sm:flex-row">
+          <div className="grid flex-1 gap-1">
+            <CardTitle>Clicks by Country</CardTitle>
+            <CardDescription>
+              Geographic distribution of clicks over the selected time period
+            </CardDescription>
+          </div>
+
+          {/* Time range control writes to URL */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="w-[160px] justify-between">
+                {timeOptions[search.geo.time]}
+                <ChevronDown className="ml-2 h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-[160px]">
+              {timeArray.map((opt) => (
+                <DropdownMenuItem
+                  key={opt}
+                  onClick={() => setGeoTime(opt)}
+                  className={search.geo.time === opt ? "bg-accent" : ""}
+                >
+                  {timeOptions[opt]}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </CardHeader>
         <CardContent>
           <Suspense
