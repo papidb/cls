@@ -113,6 +113,46 @@ function RouteComponent() {
       <Card>
         <CardHeader className="flex items-center gap-2 space-y-0 border-b py-5 sm:flex-row">
           <div className="grid flex-1 gap-1">
+            <CardTitle>Clicks by Country</CardTitle>
+            <CardDescription>
+              Geographic distribution of clicks over the selected time period
+            </CardDescription>
+          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="w-[160px] justify-between">
+                {selectedOption.label}
+                <ChevronDown className="ml-2 h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-[160px]">
+              {timeRangeOptions.map((option) => (
+                <DropdownMenuItem
+                  key={option.value}
+                  onClick={() => setTimeRange(option.value)}
+                  className={timeRange === option.value ? "bg-accent" : ""}
+                >
+                  {option.label}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </CardHeader>
+        <CardContent>
+          {geoData.data && geoData.data.length > 0 ? (
+            <TrafficMap trafficByCountry={trafficByCountry} />
+          ) : (
+            <div className="flex items-center justify-center h-64 text-muted-foreground">
+              {geoData.isLoading
+                ? "Loading geographic data..."
+                : "No geographic data available"}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader className="flex items-center gap-2 space-y-0 border-b py-5 sm:flex-row">
+          <div className="grid flex-1 gap-1">
             <CardTitle>Click Analytics</CardTitle>
             <CardDescription>
               Click activity over the selected time period (hourly buckets)
@@ -203,47 +243,6 @@ function RouteComponent() {
               {timeSeries.isLoading
                 ? "Loading analytics..."
                 : "No click data available"}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader className="flex items-center gap-2 space-y-0 border-b py-5 sm:flex-row">
-          <div className="grid flex-1 gap-1">
-            <CardTitle>Clicks by Country</CardTitle>
-            <CardDescription>
-              Geographic distribution of clicks over the selected time period
-            </CardDescription>
-          </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="w-[160px] justify-between">
-                {selectedOption.label}
-                <ChevronDown className="ml-2 h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-[160px]">
-              {timeRangeOptions.map((option) => (
-                <DropdownMenuItem
-                  key={option.value}
-                  onClick={() => setTimeRange(option.value)}
-                  className={timeRange === option.value ? "bg-accent" : ""}
-                >
-                  {option.label}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </CardHeader>
-        <CardContent>
-          {geoData.data && geoData.data.length > 0 ? (
-            <TrafficMap trafficByCountry={trafficByCountry} />
-          ) : (
-            <div className="flex items-center justify-center h-64 text-muted-foreground">
-              {geoData.isLoading
-                ? "Loading geographic data..."
-                : "No geographic data available"}
             </div>
           )}
         </CardContent>
