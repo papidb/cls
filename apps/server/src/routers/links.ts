@@ -10,9 +10,9 @@ import { protectedProcedure, router } from "../lib/trpc";
 export const linksRouter = router({
   getAll: protectedProcedure
     .input(queryLinksPayloadSchema)
-    .query(({ input }) => {
+    .query(({ input, ctx }) => {
       const linkService = getFromContainer(LinkService);
-      return linkService.getLinks(input);
+      return linkService.getLinks(ctx.session.user.id, input);
     }),
   create: protectedProcedure
     .input(createLinkPayloadSchema)

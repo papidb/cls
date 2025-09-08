@@ -13,7 +13,7 @@ import { DateTime } from "luxon";
 import { CacheService } from "./cache.service";
 
 export class LinkService {
-  async getLinks(q: QueryLinksPayload) {
+  async getLinks(userId: string, q: QueryLinksPayload) {
     const { cursor, text, order, size } = { ...q, size: 100 };
 
     const db = getFromContainer(DatabaseConnection);
@@ -27,7 +27,8 @@ export class LinkService {
               ? gt(links.id, cursor)
               : lt(links.id, cursor)
             : undefined,
-          text ? ilike(links.description, `%${text}%`) : undefined
+          text ? ilike(links.description, `%${text}%`) : undefined,
+          eq(links.userId, userId)
         )
       )
       .limit(size)
