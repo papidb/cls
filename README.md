@@ -6,7 +6,7 @@ It was inspired by my talk on [Building APIs on Cloudflare](https://cls.danielub
 ## Features
 
 - **Authentication**: Email & password authentication with [Better Auth](https://www.better-auth.com/)
-- **Analytics**: Click tracking and usage analytics with detailed reporting
+- **Analytics**:  Click tracking and usage analytics with detailed reporting with Cloudflare [Workers analytics engine](https://developers.cloudflare.com/analytics/analytics-engine/)
 - **Database**: Cloudflare D1 with [Drizzle ORM](https://orm.drizzle.team/) for type-safe database operations
 - **Server**: [Hono](https://hono.dev/) web framework with [tRPC](https://trpc.io/) for end-to-end type safety
 - **Frontend**: React with [TanStack Router](https://tanstack.com/router) and [TailwindCSS](https://tailwindcss.com/)
