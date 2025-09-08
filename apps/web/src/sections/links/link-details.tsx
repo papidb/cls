@@ -226,20 +226,14 @@ export function LinkDetails({ link }: { link: LinkType }) {
             {/* Original URL */}
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-sm font-semibold">
-                <LinkIcon className="h-4 w-4 text-green-500" />
+                <ExternalLink className="h-4 w-4 text-green-500" />
                 Original URL
               </div>
               <div className="flex items-start gap-2">
-                <div className="flex-1 flex items-center gap-3">
-                  {favicon ? (
-                    <img
-                      src={favicon}
-                      alt=""
-                      className="h-6 w-6 rounded"
-                      loading="lazy"
-                    />
-                  ) : null}
-                  <CodeField value={link.url} ariaLabel="Original URL" />
+                <div className="flex-1">
+                  <div className="px-3 py-2 rounded-md border bg-muted/50 text-sm font-mono leading-relaxed break-all max-h-28 overflow-y-auto">
+                    {link.url}
+                  </div>
                 </div>
                 <CopyButton value={link.url} label="original URL" />
               </div>
