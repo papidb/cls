@@ -122,7 +122,6 @@ function RouteComponent() {
     timeSeries: Promise<Array<{ bucket: number; clicks: number }>>;
     geo: Promise<Array<{ country: string; clicks: number }>>;
   };
-  console.log({ data });
 
   // deep-updaters that preserve other keys
   const setTimeSeriesTime = (next: Time) =>
