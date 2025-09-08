@@ -1,19 +1,28 @@
 import { authClient } from "@/lib/auth-client";
-import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
 
-export const Route = createFileRoute("/_authenticated")({
-  beforeLoad: async ({ location }) => {
-    const { data } = await authClient.getSession();
-    if (!data) {
-      throw redirect({
+function AuthenticatedLayout() {
+  const navigate = useNavigate();
+  const { data: session, isPending } = authClient.useSession();
+
+  // TODO: Remove and look for a better way to handle auth state
+  useEffect(() => {
+    if (!isPending && !session) {
+      navigate({
         to: "/login",
         search: {
-          // Save current location for redirect after login
-          redirect: location.href,
+          redirect: window.location.href,
         },
+        replace: true,
       });
     }
-  },
+  }, [session, isPending, navigate]);
+
+  return <Outlet />;
+}
+
+export const Route = createFileRoute("/_authenticated")({
   ssr: false,
-  component: () => <Outlet />,
+  component: AuthenticatedLayout,
 });

@@ -249,7 +249,7 @@ const countryISOMapping = {
   XK: "XKX",
 };
 
-type ISO2 = keyof typeof countryISOMapping;
+export type ISO2 = keyof typeof countryISOMapping;
 
 export function getCountryISO3(countryCode: ISO2) {
   return countryISOMapping[countryCode];

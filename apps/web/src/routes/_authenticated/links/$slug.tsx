@@ -19,24 +19,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { getCountryISO3 } from "@/lib/country";
+import { getCountryISO3, type ISO2 } from "@/lib/country";
 import { LinkDetails } from "@/sections/links/link-details";
 import { trpc } from "@/utils/trpc";
-import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { Await, createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, ChevronDown } from "lucide-react";
-import { useMemo, useState } from "react";
+import { Suspense, useMemo } from "react";
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
-
-export const Route = createFileRoute("/_authenticated/links/$slug")({
-  component: RouteComponent,
-  loader: ({ context, params }) =>
-    Promise.all([
-      context.queryClient.ensureQueryData(
-        trpc.links.get.queryOptions({ slug: params.slug })
-      ),
-    ]),
-});
+import z from "zod";
 
 const chartConfig = {
   clicks: {
@@ -45,71 +35,127 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-const timeRangeOptions = [
-  { value: "7d", label: "Last 7 days", days: 7 },
-  { value: "30d", label: "Last 30 days", days: 30 },
-  { value: "90d", label: "Last 90 days", days: 90 },
-] as const;
+const timeEnum = z.enum(["7d", "30d", "90d"]);
+type Time = z.infer<typeof timeEnum>;
+const timeToDays = (t: Time) => ({ "7d": 7, "30d": 30, "90d": 90 }[t]);
+
+const timeNode = z.object({ time: timeEnum.catch("30d") });
+
+export const searchSchema = z
+  .object({
+    timeSeries: timeNode.catch({ time: "30d" }), // controls the chart
+    geo: timeNode
+      .extend({ country: z.string().length(3).optional() })
+      .catch({ time: "30d" }),
+  })
+  .default({ timeSeries: { time: "30d" }, geo: { time: "30d" } });
+
+export type Search = z.infer<typeof searchSchema>;
+
+export const Route = createFileRoute("/_authenticated/links/$slug")({
+  validateSearch: searchSchema,
+  loaderDeps: ({ search }) => {
+    const s = search as Search; // already parsed by validateSearch
+    return {
+      tsDays: timeToDays(s.timeSeries.time), // chart horizon
+      geoDays: timeToDays(s.geo.time), // geo horizon
+      geoCountry: s.geo.country ?? null, // selected country (optional)
+    };
+  },
+
+  loader: async ({ context, params, deps }) => {
+    const { slug } = params;
+    const { tsDays, geoDays } = deps as { tsDays: number; geoDays: number };
+    const linkPromise = context.queryClient.ensureQueryData(
+      trpc.links.get.queryOptions({ slug })
+    );
+
+    const timeSeriesPromise = context.queryClient.ensureQueryData(
+      trpc.analytics.metrics.queryOptions({
+        bucket: "hour",
+        metrics: [{ kind: "clicks", alias: "clicks" }],
+        filters: [
+          { op: "eq", col: "slug", value: slug },
+          { op: "sinceDays", days: tsDays },
+        ],
+        orderBy: [{ expr: "bucket", dir: "ASC" }],
+        limit: 24 * tsDays,
+      })
+    );
+    const geoPromise = context.queryClient.ensureQueryData(
+      trpc.analytics.metrics.queryOptions({
+        dimensions: [{ col: "country", alias: "country" }],
+        metrics: [{ kind: "clicks", alias: "clicks" }],
+        filters: [
+          { op: "eq", col: "slug", value: slug },
+          { op: "sinceDays", days: geoDays },
+        ],
+        orderBy: [{ expr: "clicks", dir: "DESC" }],
+        limit: 20,
+      })
+    );
+
+    const link = await linkPromise;
+
+    return {
+      link, // resolved
+      timeSeries: timeSeriesPromise, // deferred
+      geo: geoPromise, // deferred
+    };
+  },
+
+  component: RouteComponent,
+});
 
 function RouteComponent() {
-  const { slug } = Route.useParams();
-  const [timeRange, setTimeRange] = useState<"7d" | "30d" | "90d">("30d");
-  const link = useSuspenseQuery(trpc.links.get.queryOptions({ slug: slug }));
+  const search = Route.useSearch() as Search;
+  const navigate = Route.useNavigate();
+  const data = Route.useLoaderData() as {
+    link: Awaited<ReturnType<typeof trpc.links.get.queryFn>>;
+    timeSeries: Promise<Array<{ bucket: number; clicks: number }>>;
+    geo: Promise<Array<{ country: string; clicks: number }>>;
+  };
+  console.log({data})
 
-  const selectedOption = timeRangeOptions.find(
-    (option) => option.value === timeRange
-  )!;
+  // deep-updaters that preserve other keys
+  const setTimeSeriesTime = (next: Time) =>
+    navigate({
+      replace: true,
+      search: (prev: Search) => ({
+        ...prev,
+        timeSeries: { ...(prev.timeSeries ?? {}), time: next },
+      }),
+    });
 
-  const timeSeries = useQuery(
-    trpc.analytics.metrics.queryOptions({
-      bucket: "hour", // one bucket per hour
-      metrics: [{ kind: "clicks", alias: "clicks" }],
-      filters: [
-        { op: "eq", col: "slug", value: slug },
-        { op: "sinceDays", days: selectedOption.days },
-      ],
-      orderBy: [{ expr: "bucket", dir: "ASC" }],
-      limit: 24 * selectedOption.days,
-    })
-  );
+  const setGeoTime = (next: Time) =>
+    navigate({
+      replace: true,
+      search: (prev: Search) => ({
+        ...prev,
+        geo: { ...(prev.geo ?? {}), time: next },
+      }),
+    });
 
-  const geoData = useQuery(
-    trpc.analytics.metrics.queryOptions({
-      dimensions: [{ col: "country", alias: "country" }],
-      metrics: [{ kind: "clicks", alias: "clicks" }],
-      filters: [
-        { op: "eq", col: "slug", value: slug },
-        { op: "sinceDays", days: 30 },
-      ],
-      orderBy: [{ expr: "clicks", dir: "DESC" }],
-      limit: 20,
-    })
-  );
-
-  const trafficByCountry = useMemo(() => {
-    if (!geoData.data) return {};
-    return (
-      geoData.data as unknown as { country: string; clicks: string }[]
-    ).reduce((acc: Record<string, number>, item: any) => {
-      if (item.country) {
-        acc[getCountryISO3(item.country)] = item.clicks;
-      }
-      return acc;
-    }, {});
-  }, [geoData.data]);
+  // UI selections
 
   return (
     <div className="container mx-auto max-w-4xl px-4 py-8 gap-6">
       <div className="mb-6">
         <Button variant="ghost" asChild>
-          <Link to="/links">
+          <Link
+            to="/links"
+            search={(prev: Search) => ({
+              ...prev,
+              timeSeries: prev.timeSeries,
+            })}
+          >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Links
           </Link>
         </Button>
       </div>
 
-      <LinkDetails link={link.data} />
+      <LinkDetails link={data.link} />
       <Card>
         <CardHeader className="flex items-center gap-2 space-y-0 border-b py-5 sm:flex-row">
           <div className="grid flex-1 gap-1">
@@ -118,96 +164,133 @@ function RouteComponent() {
               Click activity over the selected time period (hourly buckets)
             </CardDescription>
           </div>
+
+          {/* Time range control writes to URL */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="w-[160px] justify-between">
-                {selectedOption.label}
+                {
+                  (
+                    {
+                      "7d": "Last 7 days",
+                      "30d": "Last 30 days",
+                      "90d": "Last 90 days",
+                    } as const
+                  )[search.timeSeries.time]
+                }
                 <ChevronDown className="ml-2 h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-[160px]">
-              {timeRangeOptions.map((option) => (
+              {(["7d", "30d", "90d"] as const).map((opt) => (
                 <DropdownMenuItem
-                  key={option.value}
-                  onClick={() => setTimeRange(option.value)}
-                  className={timeRange === option.value ? "bg-accent" : ""}
+                  key={opt}
+                  onClick={() => setTimeSeriesTime(opt)}
+                  className={search.timeSeries.time === opt ? "bg-accent" : ""}
                 >
-                  {option.label}
+                  {
+                    (
+                      {
+                        "7d": "Last 7 days",
+                        "30d": "Last 30 days",
+                        "90d": "Last 90 days",
+                      } as const
+                    )[opt]
+                  }
                 </DropdownMenuItem>
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
         </CardHeader>
+
         <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
-          {timeSeries.data && timeSeries.data.length > 0 ? (
-            <ChartContainer
-              config={chartConfig}
-              className="aspect-auto h-[250px] w-full"
-            >
-              {/* @ts-ignore can't tell why this is breaking ts, will fix.  */}
-              <AreaChart data={timeSeries.data}>
-                <defs>
-                  <linearGradient id="fillClicks" x1="0" y1="0" x2="0" y2="1">
-                    <stop
-                      offset="5%"
-                      stopColor="var(--color-clicks)"
-                      stopOpacity={0.8}
-                    />
-                    <stop
-                      offset="95%"
-                      stopColor="var(--color-clicks)"
-                      stopOpacity={0.1}
-                    />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid vertical={false} />
-                <XAxis
-                  dataKey="bucket"
-                  tickLine={false}
-                  axisLine={false}
-                  tickMargin={8}
-                  minTickGap={32}
-                  tickFormatter={(value) =>
-                    new Date(value * 1000).toLocaleDateString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                    })
-                  }
-                />
-                <ChartTooltip
-                  cursor={false}
-                  content={
-                    <ChartTooltipContent
-                      labelFormatter={(value) =>
-                        new Date(value * 1000).toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                          hour: "numeric",
-                          minute: "2-digit",
-                        })
-                      }
-                      indicator="dot"
-                    />
-                  }
-                />
-                <Area
-                  dataKey="clicks"
-                  type="natural"
-                  fill="url(#fillClicks)"
-                  stroke="var(--color-clicks)"
-                />
-              </AreaChart>
-            </ChartContainer>
-          ) : (
-            <div className="flex items-center justify-center h-64 text-muted-foreground">
-              {timeSeries.isLoading
-                ? "Loading analytics..."
-                : "No click data available"}
-            </div>
-          )}
+          <Suspense
+            fallback={
+              <div className="flex items-center justify-center h-64 text-muted-foreground">
+                Loading analytics…
+              </div>
+            }
+          >
+            <Await promise={data.timeSeries}>
+              {(series: Array<{ bucket: number; clicks: number }>) => {
+                console.log({series})
+                return series?.length ? (
+                  <ChartContainer
+                    config={chartConfig}
+                    className="aspect-auto h-[250px] w-full"
+                  >
+                    {/* @ts-ignore */}
+                    <AreaChart data={series}>
+                      <defs>
+                        <linearGradient
+                          id="fillClicks"
+                          x1="0"
+                          y1="0"
+                          x2="0"
+                          y2="1"
+                        >
+                          <stop
+                            offset="5%"
+                            stopColor="var(--color-clicks)"
+                            stopOpacity={0.8}
+                          />
+                          <stop
+                            offset="95%"
+                            stopColor="var(--color-clicks)"
+                            stopOpacity={0.1}
+                          />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid vertical={false} />
+                      <XAxis
+                        dataKey="bucket"
+                        tickLine={false}
+                        axisLine={false}
+                        tickMargin={8}
+                        minTickGap={32}
+                        tickFormatter={(v) =>
+                          new Date(v * 1000).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                          })
+                        }
+                      />
+                      <ChartTooltip
+                        cursor={false}
+                        content={
+                          <ChartTooltipContent
+                            labelFormatter={(v) =>
+                              new Date(v * 1000).toLocaleDateString("en-US", {
+                                month: "short",
+                                day: "numeric",
+                                hour: "numeric",
+                                minute: "2-digit",
+                              })
+                            }
+                            indicator="dot"
+                          />
+                        }
+                      />
+                      <Area
+                        dataKey="clicks"
+                        type="natural"
+                        fill="url(#fillClicks)"
+                        stroke="var(--color-clicks)"
+                      />
+                    </AreaChart>
+                  </ChartContainer>
+                ) : (
+                  <div className="flex items-center justify-center h-64 text-muted-foreground">
+                    No click data available
+                  </div>
+                );
+              }}
+            </Await>
+          </Suspense>
         </CardContent>
       </Card>
 
+      {/* Card 2: Geo — deferred */}
       <Card>
         <CardHeader>
           <CardTitle>Clicks by Country</CardTitle>
@@ -216,15 +299,37 @@ function RouteComponent() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {geoData.data && geoData.data.length > 0 ? (
-            <TrafficMap trafficByCountry={trafficByCountry} />
-          ) : (
-            <div className="flex items-center justify-center h-64 text-muted-foreground">
-              {geoData.isLoading
-                ? "Loading geographic data..."
-                : "No geographic data available"}
-            </div>
-          )}
+          <Suspense
+            fallback={
+              <div className="flex items-center justify-center h-64 text-muted-foreground">
+                Loading geographic data…
+              </div>
+            }
+          >
+            <Await promise={data.geo}>
+              {(rows: Array<{ country: string; clicks: number }>) => {
+                const trafficByCountry = useMemo(() => {
+                  return (rows ?? []).reduce(
+                    (acc: Record<string, number>, item) => {
+                      if (item.country)
+                        acc[getCountryISO3(item.country as ISO2)] = Number(
+                          item.clicks
+                        );
+                      return acc;
+                    },
+                    {}
+                  );
+                }, [rows]);
+                return rows?.length ? (
+                  <TrafficMap trafficByCountry={trafficByCountry} />
+                ) : (
+                  <div className="flex items-center justify-center h-64 text-muted-foreground">
+                    No geographic data available
+                  </div>
+                );
+              }}
+            </Await>
+          </Suspense>
         </CardContent>
       </Card>
     </div>
